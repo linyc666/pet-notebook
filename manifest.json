@@ -1,0 +1,17 @@
+{
+  "name": "宠物本本",
+  "short_name": "宠物本本",
+  "description": "宠物健康记录工具 · 疫苗驱虫体重就诊",
+  "start_url": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#FFF8F5",
+  "theme_color": "#E98B62",
+  "icons": [
+    {
+      "src": "cat-cover.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
