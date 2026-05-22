@@ -178,6 +178,42 @@ body {
 .toast.show { opacity:1; }
 .footer { text-align:center; padding:18px; font-size:10px; color:var(--muted); line-height:1.7; }
 .hidden { display:none; }
+
+/* ═══ Pet Stats ═══ */
+.pet-stats { display:flex; gap:10px; justify-content:center; margin:8px 0 0; flex-wrap:wrap; }
+.pet-stat {
+  background:rgba(255,255,255,0.65); border-radius:12px;
+  padding:6px 14px; font-size:12px; font-weight:600;
+  border:1px solid rgba(0,0,0,0.05);
+}
+.pet-stat .num { font-weight:900; }
+
+/* ═══ Status Badge ═══ */
+.status-badge {
+  display:inline-block; padding:2px 8px; border-radius:10px;
+  font-size:10px; font-weight:700; margin-left:4px;
+}
+.status-ok { background:var(--green-light); color:var(--green); }
+.status-warn { background:var(--accent-light); color:var(--accent); }
+.status-over { background:#FFE8E8; color:#D44; }
+
+/* ═══ Know Card ═══ */
+.know-card {
+  background:linear-gradient(135deg,#F8F9FB,#F0F4F8);
+  border-radius:14px; padding:14px 16px; margin-top:10px;
+  border:1px solid #E5EAF0; font-size:11px; color:#6B7B8D;
+  line-height:1.7; max-height:80px; overflow:hidden; transition:max-height 0.3s;
+}
+.know-card.open { max-height:600px; }
+.know-card .know-title {
+  font-size:12px; font-weight:800; color:var(--ink);
+  cursor:pointer; display:flex; justify-content:space-between; align-items:center;
+}
+.know-card .know-title::after { content:'展开 ▾'; font-size:10px; color:var(--muted); }
+.know-card.open .know-title::after { content:'收起 ▴'; }
+.know-card ul { margin:6px 0 0 14px; }
+.know-card li { margin-bottom:2px; }
+.know-disclaimer { margin-top:6px; font-style:italic; color:var(--accent); }
 </style>
 </head>
 <body>
@@ -201,6 +237,10 @@ body {
   <input type="file" id="photoInput" accept="image/*" style="display:none" onchange="uploadPhoto(event)">
   <div class="greeting" id="heroGreeting">宠物健康卡</div>
   <div class="greeting-sub" id="heroSub">填写信息后自动生成提醒</div>
+  <div class="pet-stats" id="petStats" style="display:none;">
+    <div class="pet-stat" id="statAge">🐱 <span class="num">—</span> 岁</div>
+    <div class="pet-stat" id="statDays">💛 已陪伴 <span class="num">—</span> 天</div>
+  </div>
   <div style="font-size:10px;color:var(--muted);margin-top:6px;">可上传宠物照片，也可以直接填写</div>
 </div>
 
@@ -240,6 +280,10 @@ body {
       <div class="form-group"><label>名字</label><input type="text" id="petName" placeholder="如：咪咪"></div>
       <div class="form-group"><label>物种</label><select id="petSpecies" onchange="onSpeciesChange()"><option>猫</option><option>狗</option></select></div>
     </div>
+    <div class="form-row">
+      <div class="form-group"><label>出生日期（选填，用于算年龄+疫苗起点）</label><input type="date" id="petBirth"></div>
+      <div class="form-group"><label>到家日期（选填，算陪伴天数）</label><input type="date" id="petArrival"></div>
+    </div>
     <button class="btn btn-primary btn-sm" onclick="savePet()">保存 →</button>
   </div>
 
@@ -261,6 +305,11 @@ body {
       <div class="disclaimer">⚠️ 提醒按常见周期估算（每年加强），具体安排以宠物医院建议为准</div>
       <div id="vaccineList" style="margin-top:8px;"></div>
       <div class="lock-tag" id="vacLimit" style="margin-top:6px;display:none;">免费版限 1 条</div>
+      <div class="know-card" onclick="this.classList.toggle('open')">
+        <div class="know-title">💉 疫苗小知识</div>
+        <ul><li>幼宠满8周龄开始接种联苗，每3~4周一针×3针，1年后加强</li><li>狂犬满12周龄接种，多数城市要求每年一次</li><li>成年后核心联苗可持续≥3年免疫力，可测抗体代替盲目年免</li><li>猫疫苗建议打腿部/尾巴，避免注射部位肉瘤风险</li></ul>
+        <div class="know-disclaimer">⚠️ 以上整理自公开资料，具体方案请咨询兽医</div>
+      </div>
     </div>
 
     <!-- Deworm -->
@@ -274,6 +323,11 @@ body {
       <div class="disclaimer">⚠️ 外驱每月、内驱每3月为常见周期，具体用药请遵医嘱</div>
       <div id="dewormList" style="margin-top:8px;"></div>
       <div class="lock-tag" id="dewLimit" style="margin-top:6px;display:none;">免费版限外驱1条+内驱1条</div>
+      <div class="know-card" onclick="this.classList.toggle('open')">
+        <div class="know-title">🪱 驱虫小知识</div>
+        <ul><li>幼宠(2~6月)内驱每月1次；成年常规每3月1次，高风险每月1次</li><li>外驱+心丝虫预防每月1次，有蚊季节不可中断，纯室内也需防</li><li>内外同驱滴剂(大宠爱/爱沃克)不驱或弱驱绦虫，需额外口服补</li><li>猫狗驱虫药成分不同，猫严禁使用犬用驱虫药（可能中毒致死）</li><li>驱虫后1~2天轻微呕吐/软便正常，持续或加重请就医</li></ul>
+        <div class="know-disclaimer">⚠️ 以上整理自公开资料，具体用药和频率请咨询兽医</div>
+      </div>
     </div>
 
     <!-- Weight -->
@@ -442,9 +496,36 @@ let meds = JSON.parse(localStorage.getItem('pn_med') || '[]');
 let expenses = JSON.parse(localStorage.getItem('pn_expense') || '[]');
 const FREE_VAC = 1, FREE_DEW = 2;
 
-let editing = null; // { section: 'vac'|'dew'|'wt'|'visit'|'med'|'exp', index: N }
-function isEditing(section, idx) { return editing && editing.section === section && editing.index === idx; }
+let editing = null;
 function clearEdit() { editing = null; }
+
+// ═══ Helpers ═══
+function calcAge(birth) {
+  if (!birth) return null;
+  const b = new Date(birth), now = new Date();
+  let yrs = now.getFullYear() - b.getFullYear();
+  let mos = now.getMonth() - b.getMonth();
+  if (mos < 0) { yrs--; mos += 12; }
+  if (now.getDate() < b.getDate()) { mos--; if (mos < 0) { yrs--; mos += 12; } }
+  return { yrs, mos };
+}
+function calcDays(date) {
+  if (!date) return null;
+  return Math.ceil((new Date() - new Date(date)) / (1000*3600*24));
+}
+function statusBadge(daysUntil, warnDays) {
+  if (daysUntil < 0) return '<span class="status-badge status-over">已过期</span>';
+  if (daysUntil <= (warnDays || 14)) return '<span class="status-badge status-warn">临近</span>';
+  return '<span class="status-badge status-ok">正常</span>';
+}
+function nextDateStr(lastDate, months) {
+  const d = new Date(lastDate);
+  d.setMonth(d.getMonth() + months);
+  return d.toISOString().split('T')[0];
+}
+function daysUntil(dateStr) {
+  return Math.ceil((new Date(dateStr) - new Date()) / (1000*3600*24));
+}
 
 function save() {
   localStorage.setItem('pn_pet', JSON.stringify(pet));
@@ -486,7 +567,7 @@ function startFill() {
 }
 
 function loadDemo() {
-  pet = { name:'咪咪', species:'猫' };
+  pet = { name:'咪咪', species:'猫', birth:'2025-01-15', arrival:'2025-03-01' };
   vaccines = [{ type:'猫三联', date:'2025-08-15', hospital:'爱诺宠物医院', proof:'疫苗本已拍照存在相册' }];
   deworms = [{ type:'外驱（每月）', date:'2026-05-01' }, { type:'内驱（每3月）', date:'2026-03-01' }];
   weights = [{ date:'2026-05-01', weight:4.2 }, { date:'2026-04-01', weight:4.0 }, { date:'2026-03-01', weight:3.8 }];
@@ -504,7 +585,11 @@ function loadDemo() {
 function savePet() {
   const n = document.getElementById('petName').value.trim();
   if (!n) return toast('请填写宠物名字');
-  pet = { name:n, species:document.getElementById('petSpecies').value };
+  pet = {
+    name:n, species:document.getElementById('petSpecies').value,
+    birth: document.getElementById('petBirth').value || null,
+    arrival: document.getElementById('petArrival').value || null
+  };
   save();
   document.getElementById('setupCard').style.display = 'none';
   document.getElementById('heroBtns').classList.add('hidden');
@@ -763,9 +848,21 @@ function refreshAll() {
   const s = document.getElementById('heroSub');
   const img = document.getElementById('heroImg');
   const emoji = document.getElementById('heroEmoji');
+  const stats = document.getElementById('petStats');
   if (pet) {
     g.textContent = pet.name + ' 的健康卡';
-    s.textContent = (pet.species||'') + ' · 本地保存';
+    const age = calcAge(pet.birth);
+    const days = calcDays(pet.arrival);
+    let subParts = [pet.species||''];
+    if (age) subParts.push(age.yrs + '岁' + (age.mos > 0 ? age.mos + '个月' : ''));
+    subParts.push('本地保存');
+    s.textContent = subParts.join(' · ');
+    // Stats
+    if (age || days) {
+      stats.style.display = 'flex';
+      document.getElementById('statAge').innerHTML = (pet.species==='狗'?'🐶':'🐱') + ' <span class="num">' + (age ? age.yrs + '岁' + age.mos + '个月' : '—') + '</span>';
+      document.getElementById('statDays').innerHTML = '💛 已陪伴 <span class="num">' + (days ? days : '—') + '</span> 天';
+    } else { stats.style.display = 'none'; }
     if (petPhoto) {
       img.src = petPhoto; img.style.display = 'block'; emoji.style.display = 'none';
     } else if (pet.species === '狗') {
@@ -782,19 +879,26 @@ function refreshAll() {
   let filled = 0;
 
   if (pet) { filled += 1; }
+  const hcAge = calcAge(pet ? pet.birth : null);
+  const hcPuppy = hcAge && (hcAge.yrs < 1);
   if (vaccines.length) {
     filled += 1;
-    const d = new Date(vaccines[0].date); d.setFullYear(d.getFullYear()+1);
-    const days = Math.ceil((d - new Date())/(24*3600*1000));
-    nextVac = days < 0 ? '⚠ 已到期' : d.toISOString().split('T')[0] + '（'+days+'天后）';
+    const v0 = vaccines[0];
+    const shotCount = vaccines.filter(x => x.type !== '狂犬').length;
+    const interval = (hcPuppy && shotCount < 3 && v0.type !== '狂犬') ? 0.75 : 12;
+    const d = nextDateStr(v0.date, interval);
+    const days = daysUntil(d);
+    nextVac = days < 0 ? '⚠ 已到期' : d + '（'+days+'天后）';
   }
   if (deworms.length) {
     filled += 1;
     deworms.forEach(dw => {
-      const d = new Date(dw.date); d.setDate(d.getDate() + (dw.type.includes('外')?30:90));
-      const days = Math.ceil((d - new Date())/(24*3600*1000));
-      const txt = days < 0 ? '⚠ 已到期' : d.toISOString().split('T')[0] + '（'+days+'天后）';
-      if (dw.type.includes('外')) outerD = txt; else innerD = txt;
+      const isOuter = dw.type.includes('外');
+      const interval = isOuter ? 1 : (hcPuppy ? 1 : 3);
+      const d = nextDateStr(dw.date, interval);
+      const days = daysUntil(d);
+      const txt = days < 0 ? '⚠ 已到期' : d + '（'+days+'天后）';
+      if (isOuter) outerD = txt; else innerD = txt;
     });
   }
 
@@ -812,24 +916,41 @@ function refreshAll() {
 
   // Vaccine list
   const vl = document.getElementById('vaccineList');
+  const age = calcAge(pet ? pet.birth : null);
+  const isPuppy = age && (age.yrs < 1);
   vl.innerHTML = vaccines.map((v,i) => {
-    const d = new Date(v.date); const n = new Date(d); n.setFullYear(n.getFullYear()+1);
-    const days = Math.ceil((n - new Date())/(24*3600*1000));
-    const st = days<0?'<span style="color:var(--accent);">⚠</span>':days<30?'<span style="color:var(--accent);">⏰</span>':'<span style="color:var(--green);">✅</span>';
+    const last = new Date(v.date);
+    let nextStr, nextDays;
+    if (isPuppy && v.type !== '狂犬') {
+      // Puppy core vaccine: repeat every 3-4 weeks, but stop after 3 shots and shift to annual
+      const shotCount = vaccines.filter(x => x.type !== '狂犬' && new Date(x.date) <= last).length;
+      if (shotCount >= 3) {
+        nextStr = nextDateStr(v.date, 12); // annual booster
+      } else {
+        nextStr = nextDateStr(v.date, 0.75); // ~3 weeks
+      }
+    } else {
+      nextStr = nextDateStr(v.date, v.type === '狂犬' ? 12 : 12);
+    }
+    nextDays = daysUntil(nextStr);
+    const badge = statusBadge(nextDays, 30);
     const proof = v.proof ? '<br><span style="font-size:10px;color:var(--muted);">📎 ' + v.proof + '</span>' : '';
     const btns = '<span style="cursor:pointer;color:var(--muted);margin-left:6px;" onclick="editVac('+i+')" title="编辑">✎</span> <span style="cursor:pointer;color:var(--muted);" onclick="delVac('+i+')" title="删除">✕</span>';
-    return '<div class="rec-item"><div><span>' + v.date + ' · ' + v.type + ' · ' + (v.hospital||'—') + proof + '</span></div><span>' + n.toISOString().split('T')[0] + ' ' + st + btns + '</span></div>';
+    return '<div class="rec-item"><div><span>' + v.date + ' · ' + v.type + ' · ' + (v.hospital||'—') + proof + '</span></div><span>' + nextStr + ' ' + badge + btns + '</span></div>';
   }).join('') || '<div style="font-size:12px;color:var(--muted);">暂无记录</div>';
   document.getElementById('vacLimit').style.display = (planLevel === 'free' && vaccines.length >= FREE_VAC) ? '' : 'none';
 
   // Deworm list
   const dl = document.getElementById('dewormList');
   dl.innerHTML = deworms.map((dw,i) => {
-    const d = new Date(dw.date); const n = new Date(d); n.setDate(n.getDate()+(dw.type.includes('外')?30:90));
-    const days = Math.ceil((n - new Date())/(24*3600*1000));
-    const st = days<0?'<span style="color:var(--accent);">⚠</span>':days<15?'<span style="color:var(--accent);">⏰</span>':'<span style="color:var(--green);">✅</span>';
+    const isOuter = dw.type.includes('外');
+    const isPuppyDew = isPuppy && !isOuter;
+    const interval = isOuter ? 1 : (isPuppyDew ? 1 : 3); // adult inner: 3mo, puppy/outer: 1mo
+    const nextStr = nextDateStr(dw.date, interval);
+    const nextDays = daysUntil(nextStr);
+    const badge = statusBadge(nextDays, isOuter ? 7 : 21);
     const btns = '<span style="cursor:pointer;color:var(--muted);margin-left:6px;" onclick="editDew('+i+')" title="编辑">✎</span> <span style="cursor:pointer;color:var(--muted);" onclick="delDew('+i+')" title="删除">✕</span>';
-    return `<div class="rec-item"><span>${dw.date} · ${dw.type}</span><span>${n.toISOString().split('T')[0]} ${st}${btns}</span></div>`;
+    return `<div class="rec-item"><span>${dw.date} · ${dw.type}</span><span>${nextStr} ${badge}${btns}</span></div>`;
   }).join('') || '<div style="font-size:12px;color:var(--muted);">暂无记录</div>';
   document.getElementById('dewLimit').style.display = (planLevel === 'free' && deworms.length >= FREE_DEW) ? '' : 'none';
 
@@ -1006,6 +1127,8 @@ if (petPhoto) {
 if (pet) {
   document.getElementById('petName').value = pet.name;
   document.getElementById('petSpecies').value = pet.species;
+  if (pet.birth) document.getElementById('petBirth').value = pet.birth;
+  if (pet.arrival) document.getElementById('petArrival').value = pet.arrival;
   document.getElementById('formArea').classList.remove('hidden');
   document.getElementById('setupCard').style.display = 'none';
   document.getElementById('heroBtns').classList.add('hidden');
