@@ -247,7 +247,7 @@ body {
   <div id="dashboard" class="hidden">
 
     <!-- Vaccine -->
-    <div class="card">
+    <div class="card" id="vaccineCard">
       <h2>💉 疫苗提醒</h2>
       <div class="form-row">
         <div class="form-group"><label>类型</label><select id="vType"><option>猫三联</option><option>狂犬</option><option>其他</option></select></div>
@@ -264,7 +264,7 @@ body {
     </div>
 
     <!-- Deworm -->
-    <div class="card">
+    <div class="card" id="dewCard">
       <h2>🪱 驱虫提醒</h2>
       <div class="form-row">
         <div class="form-group"><label>类型</label><select id="dwType"><option>外驱（每月）</option><option>内驱（每3月）</option></select></div>
@@ -442,6 +442,10 @@ let meds = JSON.parse(localStorage.getItem('pn_med') || '[]');
 let expenses = JSON.parse(localStorage.getItem('pn_expense') || '[]');
 const FREE_VAC = 1, FREE_DEW = 2;
 
+let editing = null; // { section: 'vac'|'dew'|'wt'|'visit'|'med'|'exp', index: N }
+function isEditing(section, idx) { return editing && editing.section === section && editing.index === idx; }
+function clearEdit() { editing = null; }
+
 function save() {
   localStorage.setItem('pn_pet', JSON.stringify(pet));
   localStorage.setItem('pn_vac', JSON.stringify(vaccines));
@@ -550,28 +554,60 @@ function updatePetIcons(species) {
 // ═══ Vaccine ═══
 function addVaccine() {
   if (!pet) return toast('请先填写宠物信息');
-  if (planLevel === 'free' && vaccines.length >= FREE_VAC) return showPricing();
   const v = { type:document.getElementById('vType').value, date:document.getElementById('vDate').value, hospital:document.getElementById('vHospital').value, proof:document.getElementById('vProof').value };
   if (!v.date) return toast('请选择接种日期');
-  vaccines.push(v);
+  const wasEdit = editing && editing.section === 'vac';
+  if (wasEdit) {
+    vaccines[editing.index] = v;
+    clearEdit();
+  } else {
+    if (planLevel === 'free' && vaccines.length >= FREE_VAC) return showPricing();
+    vaccines.push(v);
+  }
   vaccines.sort((a,b) => new Date(b.date) - new Date(a.date));
   save();
-  document.getElementById('vDate').value = ''; document.getElementById('vProof').value = '';
-  toast('💉 已添加');
+  document.getElementById('vDate').value = ''; document.getElementById('vProof').value = ''; document.getElementById('vHospital').value = '';
+  toast(wasEdit ? '💉 已修改' : '💉 已添加');
 }
+function editVac(i) {
+  const v = vaccines[i];
+  document.getElementById('vType').value = v.type;
+  document.getElementById('vDate').value = v.date;
+  document.getElementById('vHospital').value = v.hospital || '';
+  document.getElementById('vProof').value = v.proof || '';
+  editing = { section: 'vac', index: i };
+  document.getElementById('vaccineCard').scrollIntoView({ behavior: 'smooth' });
+  toast('📝 修改后点「+ 添加疫苗记录」保存');
+}
+function delVac(i) { vaccines.splice(i, 1); clearEdit(); save(); }
 
 // ═══ Deworm ═══
 function addDeworm() {
   if (!pet) return toast('请先填写宠物信息');
-  if (planLevel === 'free' && deworms.length >= FREE_DEW) return showPricing();
   const dw = { type:document.getElementById('dwType').value, date:document.getElementById('dwDate').value };
   if (!dw.date) return toast('请选择日期');
-  deworms.push(dw);
+  const wasEdit = editing && editing.section === 'dew';
+  if (wasEdit) {
+    deworms[editing.index] = dw;
+    clearEdit();
+  } else {
+    if (planLevel === 'free' && deworms.length >= FREE_DEW) return showPricing();
+    deworms.push(dw);
+  }
   deworms.sort((a,b) => new Date(b.date) - new Date(a.date));
   save();
   document.getElementById('dwDate').value = '';
-  toast('🪱 已添加');
+  toast(wasEdit ? '🪱 已修改' : '🪱 已添加');
 }
+function editDew(i) {
+  const dw = deworms[i];
+  document.getElementById('dwType').value = dw.type;
+  document.getElementById('dwDate').value = dw.date;
+  editing = { section: 'dew', index: i };
+  document.getElementById('dewCard').scrollIntoView({ behavior: 'smooth' });
+  toast('📝 修改后点「+ 添加驱虫记录」保存');
+}
+function delDew(i) { deworms.splice(i, 1); clearEdit(); save(); }
 
 // ═══ Weight ═══
 function addWeight() {
@@ -581,13 +617,27 @@ function addWeight() {
   if (!w || w <= 0) return toast('请输入有效体重');
   const d = document.getElementById('wDate').value;
   if (!d) return toast('请选择日期');
-  weights.push({ date: d, weight: w });
+  const wasEdit = editing && editing.section === 'wt';
+  if (wasEdit) {
+    weights[editing.index] = { date: d, weight: w };
+    clearEdit();
+  } else {
+    weights.push({ date: d, weight: w });
+  }
   weights.sort((a, b) => new Date(b.date) - new Date(a.date));
   save();
   document.getElementById('wDate').value = ''; document.getElementById('wWeight').value = '';
-  toast('⚖️ 已记录');
+  toast(wasEdit ? '⚖️ 已修改' : '⚖️ 已记录');
 }
-function delWeight(i) { weights.splice(i, 1); save(); }
+function editWeight(i) {
+  const w = weights[i];
+  document.getElementById('wDate').value = w.date;
+  document.getElementById('wWeight').value = w.weight;
+  editing = { section: 'wt', index: i };
+  document.getElementById('weightCard').scrollIntoView({ behavior: 'smooth' });
+  toast('📝 修改后点「+ 记录体重」保存');
+}
+function delWeight(i) { weights.splice(i, 1); clearEdit(); save(); }
 
 // ═══ Visit ═══
 function addVisit() {
@@ -602,15 +652,33 @@ function addVisit() {
     proof: document.getElementById('viProof').value
   };
   if (!v.date) return toast('请选择日期');
-  visits.push(v);
+  const wasEdit = editing && editing.section === 'visit';
+  if (wasEdit) {
+    visits[editing.index] = v;
+    clearEdit();
+  } else {
+    visits.push(v);
+  }
   visits.sort((a, b) => new Date(b.date) - new Date(a.date));
   save();
   document.getElementById('viDate').value = ''; document.getElementById('viHospital').value = '';
   document.getElementById('viReason').value = ''; document.getElementById('viDiagnosis').value = '';
   document.getElementById('viCost').value = ''; document.getElementById('viProof').value = '';
-  toast('🏥 已记录');
+  toast(wasEdit ? '🏥 已修改' : '🏥 已记录');
 }
-function delVisit(i) { visits.splice(i, 1); save(); }
+function editVisit(i) {
+  const v = visits[i];
+  document.getElementById('viDate').value = v.date;
+  document.getElementById('viHospital').value = v.hospital || '';
+  document.getElementById('viReason').value = v.reason || '';
+  document.getElementById('viDiagnosis').value = v.diagnosis || '';
+  document.getElementById('viCost').value = v.cost || '';
+  document.getElementById('viProof').value = v.proof || '';
+  editing = { section: 'visit', index: i };
+  document.getElementById('visitCard').scrollIntoView({ behavior: 'smooth' });
+  toast('📝 修改后点「+ 添加就诊记录」保存');
+}
+function delVisit(i) { visits.splice(i, 1); clearEdit(); save(); }
 
 // ═══ Medication ═══
 function addMed() {
@@ -623,14 +691,30 @@ function addMed() {
     end: document.getElementById('mEnd').value
   };
   if (!m.name) return toast('请填写药品名');
-  meds.push(m);
+  const wasEdit = editing && editing.section === 'med';
+  if (wasEdit) {
+    meds[editing.index] = m;
+    clearEdit();
+  } else {
+    meds.push(m);
+  }
   meds.sort((a, b) => new Date(b.start || 0) - new Date(a.start || 0));
   save();
   document.getElementById('mName').value = ''; document.getElementById('mDosage').value = '';
   document.getElementById('mStart').value = ''; document.getElementById('mEnd').value = '';
-  toast('💊 已记录');
+  toast(wasEdit ? '💊 已修改' : '💊 已记录');
 }
-function delMed(i) { meds.splice(i, 1); save(); }
+function editMed(i) {
+  const m = meds[i];
+  document.getElementById('mName').value = m.name;
+  document.getElementById('mDosage').value = m.dosage || '';
+  document.getElementById('mStart').value = m.start || '';
+  document.getElementById('mEnd').value = m.end || '';
+  editing = { section: 'med', index: i };
+  document.getElementById('medCard').scrollIntoView({ behavior: 'smooth' });
+  toast('📝 修改后点「+ 添加用药记录」保存');
+}
+function delMed(i) { meds.splice(i, 1); clearEdit(); save(); }
 
 // ═══ Expense ═══
 function addExpense() {
@@ -645,14 +729,30 @@ function addExpense() {
     amount: amt
   };
   if (!e.date) return toast('请选择日期');
-  expenses.push(e);
+  const wasEdit = editing && editing.section === 'exp';
+  if (wasEdit) {
+    expenses[editing.index] = e;
+    clearEdit();
+  } else {
+    expenses.push(e);
+  }
   expenses.sort((a, b) => new Date(b.date) - new Date(a.date));
   save();
   document.getElementById('eDate').value = ''; document.getElementById('eItem').value = '';
   document.getElementById('eAmount').value = '';
-  toast('💰 已记录');
+  toast(wasEdit ? '💰 已修改' : '💰 已记录');
 }
-function delExpense(i) { expenses.splice(i, 1); save(); }
+function editExpense(i) {
+  const e = expenses[i];
+  document.getElementById('eDate').value = e.date;
+  document.getElementById('eCategory').value = e.category;
+  document.getElementById('eItem').value = e.item || '';
+  document.getElementById('eAmount').value = e.amount;
+  editing = { section: 'exp', index: i };
+  document.getElementById('expenseCard').scrollIntoView({ behavior: 'smooth' });
+  toast('📝 修改后点「+ 添加花费」保存');
+}
+function delExpense(i) { expenses.splice(i, 1); clearEdit(); save(); }
 
 // ═══ Render ═══
 function refreshAll() {
@@ -712,22 +812,24 @@ function refreshAll() {
 
   // Vaccine list
   const vl = document.getElementById('vaccineList');
-  vl.innerHTML = vaccines.map(v => {
+  vl.innerHTML = vaccines.map((v,i) => {
     const d = new Date(v.date); const n = new Date(d); n.setFullYear(n.getFullYear()+1);
     const days = Math.ceil((n - new Date())/(24*3600*1000));
     const st = days<0?'<span style="color:var(--accent);">⚠</span>':days<30?'<span style="color:var(--accent);">⏰</span>':'<span style="color:var(--green);">✅</span>';
     const proof = v.proof ? '<br><span style="font-size:10px;color:var(--muted);">📎 ' + v.proof + '</span>' : '';
-    return '<div class="rec-item"><div><span>' + v.date + ' · ' + v.type + ' · ' + (v.hospital||'—') + proof + '</span></div><span>' + n.toISOString().split('T')[0] + ' ' + st + '</span></div>';
+    const btns = '<span style="cursor:pointer;color:var(--muted);margin-left:6px;" onclick="editVac('+i+')" title="编辑">✎</span> <span style="cursor:pointer;color:var(--muted);" onclick="delVac('+i+')" title="删除">✕</span>';
+    return '<div class="rec-item"><div><span>' + v.date + ' · ' + v.type + ' · ' + (v.hospital||'—') + proof + '</span></div><span>' + n.toISOString().split('T')[0] + ' ' + st + btns + '</span></div>';
   }).join('') || '<div style="font-size:12px;color:var(--muted);">暂无记录</div>';
   document.getElementById('vacLimit').style.display = (planLevel === 'free' && vaccines.length >= FREE_VAC) ? '' : 'none';
 
   // Deworm list
   const dl = document.getElementById('dewormList');
-  dl.innerHTML = deworms.map(dw => {
+  dl.innerHTML = deworms.map((dw,i) => {
     const d = new Date(dw.date); const n = new Date(d); n.setDate(n.getDate()+(dw.type.includes('外')?30:90));
     const days = Math.ceil((n - new Date())/(24*3600*1000));
     const st = days<0?'<span style="color:var(--accent);">⚠</span>':days<15?'<span style="color:var(--accent);">⏰</span>':'<span style="color:var(--green);">✅</span>';
-    return `<div class="rec-item"><span>${dw.date} · ${dw.type}</span><span>${n.toISOString().split('T')[0]} ${st}</span></div>`;
+    const btns = '<span style="cursor:pointer;color:var(--muted);margin-left:6px;" onclick="editDew('+i+')" title="编辑">✎</span> <span style="cursor:pointer;color:var(--muted);" onclick="delDew('+i+')" title="删除">✕</span>';
+    return `<div class="rec-item"><span>${dw.date} · ${dw.type}</span><span>${n.toISOString().split('T')[0]} ${st}${btns}</span></div>`;
   }).join('') || '<div style="font-size:12px;color:var(--muted);">暂无记录</div>';
   document.getElementById('dewLimit').style.display = (planLevel === 'free' && deworms.length >= FREE_DEW) ? '' : 'none';
 
@@ -744,7 +846,7 @@ function refreshAll() {
       const diff = prev ? (last.weight - prev.weight).toFixed(1) : null;
       const diffStr = diff ? (diff > 0 ? '↑' + diff : '↓' + Math.abs(diff)) : '';
       wl.innerHTML = '<div style="font-size:12px;margin-bottom:6px;color:var(--muted);">最新：<b style="color:var(--ink);">' + last.weight + 'kg</b> ' + (diffStr ? '<span style="color:' + (diff > 0 ? 'var(--accent)' : 'var(--green)') + ';">' + diffStr + 'kg</span>' : '') + '（' + last.date + '）</div>'
-        + weights.map((w, i) => '<div class="rec-item"><span>' + w.date + ' · ' + w.weight + 'kg</span><span style="cursor:pointer;color:var(--muted);" onclick="delWeight(' + i + ')">✕</span></div>').join('');
+        + weights.map((w, i) => '<div class="rec-item"><span>' + w.date + ' · ' + w.weight + 'kg</span><span><span style="cursor:pointer;color:var(--muted);" onclick="editWeight(' + i + ')">✎</span> <span style="cursor:pointer;color:var(--muted);" onclick="delWeight(' + i + ')">✕</span></span></div>').join('');
     } else {
       wl.innerHTML = '<div style="font-size:12px;color:var(--muted);">暂无记录，每月称一次追踪变化</div>';
     }
@@ -760,7 +862,7 @@ function refreshAll() {
     vl2.innerHTML = visits.length
       ? visits.map((v, i) => {
           const proof = v.proof ? '<br><span style="font-size:10px;color:var(--muted);">📎 ' + v.proof + '</span>' : '';
-          return '<div class="rec-item"><div><span>' + v.date + ' · ' + (v.hospital || '—') + ' · ' + (v.reason || '—') + proof + '</span></div><span style="cursor:pointer;color:var(--muted);" onclick="delVisit(' + i + ')">✕</span></div>';
+          return '<div class="rec-item"><div><span>' + v.date + ' · ' + (v.hospital || '—') + ' · ' + (v.reason || '—') + proof + '</span></div><span><span style="cursor:pointer;color:var(--muted);" onclick="editVisit(' + i + ')">✎</span> <span style="cursor:pointer;color:var(--muted);" onclick="delVisit(' + i + ')">✕</span></span></div>';
         }).join('')
       : '<div style="font-size:12px;color:var(--muted);">暂无记录</div>';
   }
@@ -773,7 +875,7 @@ function refreshAll() {
   } else {
     mLock.style.display = 'none';
     ml.innerHTML = meds.length
-      ? meds.map((m, i) => '<div class="rec-item"><span>' + (m.start || '?') + '~' + (m.end || '?') + ' · ' + m.name + ' · ' + (m.dosage || '') + '</span><span style="cursor:pointer;color:var(--muted);" onclick="delMed(' + i + ')">✕</span></div>').join('')
+      ? meds.map((m, i) => '<div class="rec-item"><span>' + (m.start || '?') + '~' + (m.end || '?') + ' · ' + m.name + ' · ' + (m.dosage || '') + '</span><span><span style="cursor:pointer;color:var(--muted);" onclick="editMed(' + i + ')">✎</span> <span style="cursor:pointer;color:var(--muted);" onclick="delMed(' + i + ')">✕</span></span></div>').join('')
       : '<div style="font-size:12px;color:var(--muted);">暂无记录</div>';
   }
 
@@ -787,7 +889,7 @@ function refreshAll() {
     eLock.style.display = 'none';
     const total = expenses.reduce((s, e) => s + e.amount, 0);
     es.innerHTML = expenses.length ? '<b>累计：¥' + total.toFixed(2) + '</b>（' + expenses.length + '条记录）' : '暂无记录';
-    el.innerHTML = expenses.map((e, i) => '<div class="rec-item"><span>' + e.date + ' · ' + e.category + ' · ' + (e.item || '—') + '</span><span>¥' + e.amount.toFixed(2) + ' <span style="cursor:pointer;color:var(--muted);" onclick="delExpense(' + i + ')">✕</span></span></div>').join('');
+    el.innerHTML = expenses.map((e, i) => '<div class="rec-item"><span>' + e.date + ' · ' + e.category + ' · ' + (e.item || '—') + '</span><span>¥' + e.amount.toFixed(2) + ' <span style="cursor:pointer;color:var(--muted);" onclick="editExpense(' + i + ')">✎</span> <span style="cursor:pointer;color:var(--muted);" onclick="delExpense(' + i + ')">✕</span></span></div>').join('');
   }
 
   // Export buttons — only show when there are records
