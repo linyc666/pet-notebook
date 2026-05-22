@@ -241,7 +241,10 @@ body {
     <div class="pet-stat" id="statAge">🐱 <span class="num">—</span> 岁</div>
     <div class="pet-stat" id="statDays">💛 已陪伴 <span class="num">—</span> 天</div>
   </div>
-  <div style="font-size:10px;color:var(--muted);margin-top:6px;">可上传宠物照片，也可以直接填写</div>
+  <div style="font-size:10px;color:var(--muted);margin-top:6px;" id="editPetLink" class="hidden">
+    <span style="cursor:pointer;text-decoration:underline;" onclick="editPet()">✎ 编辑档案</span>
+  </div>
+  <div style="font-size:10px;color:var(--muted);margin-top:6px;" id="petEmptyHint">可上传宠物照片，也可以直接填写</div>
 </div>
 
 <!-- ═══ Health Card Preview ═══ -->
@@ -596,6 +599,7 @@ function loadDemo() {
 function savePet() {
   const n = document.getElementById('petName').value.trim();
   if (!n) return toast('请填写宠物名字');
+  const wasEdit = !!pet;
   pet = {
     name:n, species:document.getElementById('petSpecies').value,
     birth: document.getElementById('petBirth').value || null,
@@ -604,7 +608,17 @@ function savePet() {
   save();
   document.getElementById('setupCard').style.display = 'none';
   document.getElementById('heroBtns').classList.add('hidden');
-  toast('✅ 已保存！');
+  toast(wasEdit ? '✅ 档案已更新' : '✅ 已保存！');
+}
+function editPet() {
+  if (!pet) return;
+  document.getElementById('petName').value = pet.name;
+  document.getElementById('petSpecies').value = pet.species;
+  if (pet.birth) document.getElementById('petBirth').value = pet.birth;
+  if (pet.arrival) document.getElementById('petArrival').value = pet.arrival;
+  document.getElementById('setupCard').style.display = '';
+  document.getElementById('setupCard').scrollIntoView({ behavior: 'smooth' });
+  toast('📝 修改后点保存');
 }
 
 function onSpeciesChange() {
@@ -874,6 +888,8 @@ function refreshAll() {
       document.getElementById('statAge').innerHTML = (pet.species==='狗'?'🐶':'🐱') + ' <span class="num">' + (age ? age.yrs + '岁' + age.mos + '个月' : '—') + '</span>';
       document.getElementById('statDays').innerHTML = '💛 已陪伴 <span class="num">' + (days ? days : '—') + '</span> 天';
     } else { stats.style.display = 'none'; }
+    document.getElementById('editPetLink').classList.remove('hidden');
+    document.getElementById('petEmptyHint').classList.add('hidden');
     if (petPhoto) {
       img.src = petPhoto; img.style.display = 'block'; emoji.style.display = 'none';
     } else if (pet.species === '狗') {
