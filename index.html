@@ -316,7 +316,7 @@ body { font-family:"PingFang SC","Noto Sans SC","Microsoft YaHei",sans-serif; co
     <div class="card" onclick="switchTab('health');quickRecord('visit')"><h3>🏥 就诊记录</h3><div style="font-size:10px;color:var(--muted);">日期 · 医院 · 原因 · 费用</div></div>
     <div class="card" onclick="switchTab('health');quickRecord('med')"><h3>💊 用药记录</h3><div style="font-size:10px;color:var(--muted);">药品 · 用法 · 起止日期</div></div>
     <div class="card" id="petSwitcher">
-      <h3>🐱 我的宠物 <span style="font-size:10px;color:var(--muted);cursor:pointer;" onclick="addNewPet()">+ 添加</span></h3>
+      <h3>🐱 我的宠物 <span style="font-size:10px;color:var(--muted);">· 最多5只</span> <span style="font-size:10px;color:var(--accent);cursor:pointer;" onclick="addNewPet()">+ 添加</span></h3>
       <div id="petList"></div>
     </div>
     <div class="card" onclick="editPet()"><h3>✏️ 编辑档案</h3><div style="font-size:10px;color:var(--muted);">名字 · 生日 · 到家日期 · 照片</div></div>
@@ -474,7 +474,7 @@ function togglePetDropdown(){
       const info = [p.species, a ? a.yrs+'岁'+(a.mos>0?a.mos+'个月':'') : ''].filter(Boolean).join(' · ');
       const isActive = p.id === currentPetId;
       return `<div style="padding:8px 12px;border-radius:8px;cursor:pointer;font-size:13px;${isActive?'background:#FFF0E7;font-weight:700;':''}" onclick="switchPet('${p.id}');document.getElementById('petDropdown').classList.add('hidden');">${p.name} · ${info} ${isActive?'✅':''}</div>`;
-    }).join('') + (planLevel==='complete' && pets.length < 5 ? `<div style="padding:8px 12px;border-radius:8px;cursor:pointer;font-size:13px;color:var(--accent);font-weight:600;" onclick="addNewPet();document.getElementById('petDropdown').classList.add('hidden');">+ 添加新宠物</div>` : '');
+    }).join('') + (pets.length < (planLevel==='complete'?5:1) ? `<div style="padding:8px 12px;border-radius:8px;cursor:pointer;font-size:13px;color:var(--accent);font-weight:600;" onclick="addNewPet();document.getElementById('petDropdown').classList.add('hidden');">+ 添加新宠物</div>` : (planLevel!=='complete' ? `<div style="padding:8px 12px;font-size:10px;color:var(--muted);">💡 解锁完整版可添加多宠</div>` : `<div style="padding:8px 12px;font-size:10px;color:var(--muted);">已达上限（5只）</div>`));
     dd.classList.remove('hidden');
     setTimeout(() => document.addEventListener('click', function closeDD(e){ if(!dd.contains(e.target) && e.target.id!=='topName'){ dd.classList.add('hidden'); document.removeEventListener('click', closeDD); } }), 100);
   } else { dd.classList.add('hidden'); }
@@ -849,8 +849,13 @@ function renderMore(){
         <span>${isActive?'✅ 当前':''}</span>
       </div>`;
     }).join('');
-    if(pets.length < 5 && planLevel === 'complete'){
+    const maxPets = planLevel === 'complete' ? 5 : 1;
+    if(pets.length < maxPets){
       pl.innerHTML += '<div class="rec-row" style="cursor:pointer;color:var(--accent);" onclick="addNewPet()"><span>+ 添加新宠物</span></div>';
+    } else if(planLevel !== 'complete'){
+      pl.innerHTML += '<div style="font-size:10px;color:var(--muted);margin-top:4px;">💡 解锁完整版可添加最多5只宠物</div>';
+    } else {
+      pl.innerHTML += '<div style="font-size:10px;color:var(--muted);margin-top:4px;">已达上限（5只）</div>';
     }
   } else {
     pl.innerHTML = '<div style="font-size:11px;color:var(--muted);">还没有宠物档案</div>';
