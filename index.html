@@ -134,9 +134,10 @@ body { font-family:"PingFang SC","Noto Sans SC","Microsoft YaHei",sans-serif; co
       <div class="top-avatar-placeholder" id="topEmoji" style="display:none;">🐱</div>
       <div style="position:absolute;bottom:0;right:0;width:18px;height:18px;border-radius:50%;background:var(--accent);color:#fff;font-size:12px;line-height:18px;text-align:center;border:2px solid #fff;">+</div>
     </div>
-    <div class="top-info">
-      <div class="name" id="topName">宠物本本</div>
+    <div class="top-info" style="position:relative;">
+      <div class="name" id="topName" style="cursor:pointer;" onclick="togglePetDropdown()">宠物本本 <span id="petSwitcherArrow" style="font-size:10px;"></span></div>
       <div class="meta" id="topMeta">填写信息开始记录</div>
+      <div id="petDropdown" class="hidden" style="position:absolute;top:100%;left:0;background:#fff;border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,0.12);z-index:30;min-width:180px;padding:6px;margin-top:4px;"></div>
     </div>
   </div>
   <div class="top-stats" id="topStats" style="display:none;"></div>
@@ -464,6 +465,20 @@ function switchPet(petId){
   refreshAll();
   document.getElementById('mainContent').scrollTop = 0;
 }
+function togglePetDropdown(){
+  const dd = document.getElementById('petDropdown');
+  if(dd.classList.contains('hidden')){
+    const age = calcAge(pet?pet.birth:null);
+    dd.innerHTML = pets.map(p => {
+      const a = calcAge(p.birth);
+      const info = [p.species, a ? a.yrs+'岁'+(a.mos>0?a.mos+'个月':'') : ''].filter(Boolean).join(' · ');
+      const isActive = p.id === currentPetId;
+      return `<div style="padding:8px 12px;border-radius:8px;cursor:pointer;font-size:13px;${isActive?'background:#FFF0E7;font-weight:700;':''}" onclick="switchPet('${p.id}');document.getElementById('petDropdown').classList.add('hidden');">${p.name} · ${info} ${isActive?'✅':''}</div>`;
+    }).join('') + (planLevel==='complete' && pets.length < 5 ? `<div style="padding:8px 12px;border-radius:8px;cursor:pointer;font-size:13px;color:var(--accent);font-weight:600;" onclick="addNewPet();document.getElementById('petDropdown').classList.add('hidden');">+ 添加新宠物</div>` : '');
+    dd.classList.remove('hidden');
+    setTimeout(() => document.addEventListener('click', function closeDD(e){ if(!dd.contains(e.target) && e.target.id!=='topName'){ dd.classList.add('hidden'); document.removeEventListener('click', closeDD); } }), 100);
+  } else { dd.classList.add('hidden'); }
+}
 function addNewPet(){
   creatingNewPet = true;
   document.getElementById('petName').value = '';
@@ -675,6 +690,7 @@ function renderTopBar(){
     if(age||days){ stats.style.display='flex'; stats.innerHTML=(age?'<div class="top-stat">🐱 '+age.yrs+'岁'+age.mos+'个月</div>':'')+(days?'<div class="top-stat">💛 已陪伴'+days+'天</div>':''); }
     else stats.style.display='none';
     document.getElementById('editPetLink').style.display='inline-block';
+    document.getElementById('petSwitcherArrow').textContent = pets.length > 1 ? ' ▾' : '';
     if(petPhoto){ img.src=petPhoto; img.style.display='block'; emoji.style.display='none'; }
     else if(pet.species==='狗'){ img.style.display='none'; emoji.style.display='flex'; emoji.textContent='🐶'; }
     else { img.src='cat-cover.png'; img.style.display='block'; emoji.style.display='none'; }
