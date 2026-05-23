@@ -129,15 +129,18 @@ body { font-family:"PingFang SC","Noto Sans SC","Microsoft YaHei",sans-serif; co
 <!-- Top Bar -->
 <div class="top-bar" id="topBar">
   <div class="pet-row">
-    <img class="top-avatar" id="topImg" src="cat-cover.png" onerror="this.style.display='none';document.getElementById('topEmoji').style.display='flex';">
-    <div class="top-avatar-placeholder" id="topEmoji" style="display:none;">🐱</div>
+    <div style="position:relative;cursor:pointer;" onclick="document.getElementById('photoInput').click()" title="点击上传照片">
+      <img class="top-avatar" id="topImg" src="cat-cover.png" onerror="this.style.display='none';document.getElementById('topEmoji').style.display='flex';">
+      <div class="top-avatar-placeholder" id="topEmoji" style="display:none;">🐱</div>
+      <div style="position:absolute;bottom:0;right:0;width:18px;height:18px;border-radius:50%;background:var(--accent);color:#fff;font-size:12px;line-height:18px;text-align:center;border:2px solid #fff;">+</div>
+    </div>
     <div class="top-info">
       <div class="name" id="topName">宠物本本</div>
       <div class="meta" id="topMeta">填写信息开始记录</div>
     </div>
   </div>
   <div class="top-stats" id="topStats" style="display:none;"></div>
-  <div class="edit-pet-link hidden" id="editPetLink" onclick="editPet()">✎ 编辑档案</div>
+  <span class="edit-pet-link" id="editPetLink" onclick="editPet()" style="display:none;">✎ 编辑档案</span>
   <input type="file" id="photoInput" accept="image/*" style="display:none" onchange="uploadPhoto(event)">
 </div>
 
@@ -151,6 +154,7 @@ body { font-family:"PingFang SC","Noto Sans SC","Microsoft YaHei",sans-serif; co
       <div style="font-size:16px;font-weight:800;margin-bottom:6px;">还没建档</div>
       <div style="font-size:12px;color:var(--muted);margin-bottom:16px;">点击下面开始记录～</div>
       <button class="btn btn-primary btn-sm" onclick="showSetup()">开始 →</button>
+      <div style="margin-top:10px;font-size:11px;color:var(--muted);cursor:pointer;text-decoration:underline;" onclick="loadDemo()">或查看示例数据</div>
     </div>
     <div id="homeContent" class="hidden">
       <!-- Today Reminders -->
@@ -310,7 +314,11 @@ body { font-family:"PingFang SC","Noto Sans SC","Microsoft YaHei",sans-serif; co
   <div class="page" id="page-more">
     <div class="card" onclick="switchTab('health');quickRecord('visit')"><h3>🏥 就诊记录</h3><div style="font-size:10px;color:var(--muted);">日期 · 医院 · 原因 · 费用</div></div>
     <div class="card" onclick="switchTab('health');quickRecord('med')"><h3>💊 用药记录</h3><div style="font-size:10px;color:var(--muted);">药品 · 用法 · 起止日期</div></div>
-    <div class="card" onclick="editPet()"><h3>🐱 宠物档案</h3><div style="font-size:10px;color:var(--muted);">名字 · 生日 · 到家日期 · 照片</div></div>
+    <div class="card" id="petSwitcher">
+      <h3>🐱 我的宠物 <span style="font-size:10px;color:var(--muted);cursor:pointer;" onclick="addNewPet()">+ 添加</span></h3>
+      <div id="petList"></div>
+    </div>
+    <div class="card" onclick="editPet()"><h3>✏️ 编辑档案</h3><div style="font-size:10px;color:var(--muted);">名字 · 生日 · 到家日期 · 照片</div></div>
     <div class="card" onclick="showPricing()"><h3>⭐ 版本与解锁</h3><div id="morePlanBadge" style="font-size:10px;color:var(--muted);">免费体验版</div></div>
     <div class="card" id="exportCard">
       <h3>📤 保存与导出</h3>
@@ -369,16 +377,41 @@ body { font-family:"PingFang SC","Noto Sans SC","Microsoft YaHei",sans-serif; co
 
 <script>
 // ═══ State ═══
-let pet = JSON.parse(localStorage.getItem('pn_pet') || 'null');
-let vaccines = JSON.parse(localStorage.getItem('pn_vac') || '[]');
-let deworms = JSON.parse(localStorage.getItem('pn_dew') || '[]');
+// Migrate old single-pet data
+if(localStorage.getItem('pn_pet') && !localStorage.getItem('pn_pets')){
+  const oldPet = JSON.parse(localStorage.getItem('pn_pet'));
+  if(oldPet){
+    const id = 'pet' + Date.now();
+    oldPet.id = id;
+    localStorage.setItem('pn_pets', JSON.stringify([oldPet]));
+    localStorage.setItem('pn_currentPet', id);
+    ['vac','dew','weight','visit','med','expense','photo'].forEach(k => {
+      const data = localStorage.getItem('pn_'+k);
+      if(data) localStorage.setItem('pn_'+id+'_'+k, data);
+    });
+    localStorage.removeItem('pn_pet'); localStorage.removeItem('pn_vac'); localStorage.removeItem('pn_dew');
+    localStorage.removeItem('pn_weight'); localStorage.removeItem('pn_visit'); localStorage.removeItem('pn_med');
+    localStorage.removeItem('pn_expense'); localStorage.removeItem('pn_photo');
+  }
+}
+
+let pets = JSON.parse(localStorage.getItem('pn_pets') || '[]');
+let currentPetId = localStorage.getItem('pn_currentPet') || (pets.length ? pets[0].id : null);
 let planLevel = localStorage.getItem('pn_plan') || 'free';
 let selectedPlan = 'single';
-let petPhoto = localStorage.getItem('pn_photo') || null;
-let weights = JSON.parse(localStorage.getItem('pn_weight') || '[]');
-let visits = JSON.parse(localStorage.getItem('pn_visit') || '[]');
-let meds = JSON.parse(localStorage.getItem('pn_med') || '[]');
-let expenses = JSON.parse(localStorage.getItem('pn_expense') || '[]');
+
+function petKey(k){ return currentPetId ? 'pn_'+currentPetId+'_'+k : null; }
+function loadData(k, def){ const key = petKey(k); return key ? JSON.parse(localStorage.getItem(key) || def) : JSON.parse(def); }
+function saveData(k, val){ const key = petKey(k); if(key) localStorage.setItem(key, JSON.stringify(val)); }
+
+let pet = currentPetId ? pets.find(p => p.id === currentPetId) || null : null;
+let vaccines = loadData('vac', '[]');
+let deworms = loadData('dew', '[]');
+let weights = loadData('weight', '[]');
+let visits = loadData('visit', '[]');
+let meds = loadData('med', '[]');
+let expenses = loadData('expense', '[]');
+let petPhoto = loadData('photo', 'null');
 let currentTab = 'home';
 let healthSubTab = 'vac';
 let spendSubTab = 'add';
@@ -388,10 +421,54 @@ const FREE_VAC = 1, FREE_DEW = 2;
 
 // ═══ Helpers ═══
 function save() {
-  ['pn_pet','pn_vac','pn_dew','pn_plan','pn_photo','pn_weight','pn_visit','pn_med','pn_expense'].forEach((k,i) => {
-    localStorage.setItem(k, JSON.stringify([pet,vaccines,deworms,planLevel,petPhoto,weights,visits,meds,expenses][i]));
-  });
+  if(currentPetId){
+    saveData('vac', vaccines);
+    saveData('dew', deworms);
+    saveData('weight', weights);
+    saveData('visit', visits);
+    saveData('med', meds);
+    saveData('expense', expenses);
+    saveData('photo', petPhoto);
+    if(pet){
+      const idx = pets.findIndex(p => p.id === currentPetId);
+      if(idx >= 0) pets[idx] = pet; else pets.push(pet);
+      localStorage.setItem('pn_pets', JSON.stringify(pets));
+    }
+  }
+  localStorage.setItem('pn_plan', planLevel);
+  localStorage.setItem('pn_currentPet', currentPetId || '');
   refreshAll();
+}
+function switchPet(petId){
+  if(petId === currentPetId) return;
+  if(petId === 'new'){ addNewPet(); return; }
+  currentPetId = petId;
+  localStorage.setItem('pn_currentPet', currentPetId);
+  pet = pets.find(p => p.id === currentPetId) || null;
+  vaccines = loadData('vac', '[]');
+  deworms = loadData('dew', '[]');
+  weights = loadData('weight', '[]');
+  visits = loadData('visit', '[]');
+  meds = loadData('med', '[]');
+  expenses = loadData('expense', '[]');
+  petPhoto = loadData('photo', 'null');
+  editing = null;
+  currentTab = 'home';
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-home').classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.querySelector('[data-tab="home"]').classList.add('active');
+  if(pet){ document.getElementById('homeEmpty').classList.add('hidden'); document.getElementById('homeContent').classList.remove('hidden'); }
+  else { document.getElementById('homeEmpty').classList.remove('hidden'); document.getElementById('homeContent').classList.add('hidden'); }
+  refreshAll();
+  document.getElementById('mainContent').scrollTop = 0;
+}
+function addNewPet(){
+  document.getElementById('petName').value = '';
+  document.getElementById('petSpecies').value = '猫';
+  document.getElementById('petBirth').value = '';
+  document.getElementById('petArrival').value = '';
+  document.getElementById('setupOverlay').classList.remove('hidden');
 }
 function toast(msg) { const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2000); }
 function calcAge(birth) { if(!birth) return null; const b=new Date(birth), now=new Date(); let y=now.getFullYear()-b.getFullYear(), m=now.getMonth()-b.getMonth(); if(m<0){y--;m+=12;} if(now.getDate()<b.getDate()){m--;if(m<0){y--;m+=12;}} return {yrs:y,mos:m}; }
@@ -431,9 +508,24 @@ function editPet(){ showSetup(); }
 function savePet(){
   const n=document.getElementById('petName').value.trim(); if(!n) return toast('请填写名字');
   const wasEdit=!!pet;
-  pet={name:n,species:document.getElementById('petSpecies').value,birth:document.getElementById('petBirth').value||null,arrival:document.getElementById('petArrival').value||null};
+  const isNewPet = !wasEdit && !currentPetId;
+  if(isNewPet || (!wasEdit && currentPetId && pet && pet.name !== n)){
+    // Creating a new pet (not editing existing)
+    const id = 'pet' + Date.now();
+    pet = {id, name:n, species:document.getElementById('petSpecies').value, birth:document.getElementById('petBirth').value||null, arrival:document.getElementById('petArrival').value||null};
+    pets.push(pet);
+    localStorage.setItem('pn_pets', JSON.stringify(pets));
+    currentPetId = id;
+    localStorage.setItem('pn_currentPet', currentPetId);
+    vaccines = []; deworms = []; weights = []; visits = []; meds = []; expenses = []; petPhoto = null;
+  } else {
+    pet.name = n;
+    pet.species = document.getElementById('petSpecies').value;
+    pet.birth = document.getElementById('petBirth').value || null;
+    pet.arrival = document.getElementById('petArrival').value || null;
+  }
   save(); document.getElementById('setupOverlay').classList.add('hidden');
-  if(!wasEdit){ document.getElementById('homeEmpty').classList.add('hidden'); document.getElementById('homeContent').classList.remove('hidden'); }
+  document.getElementById('homeEmpty').classList.add('hidden'); document.getElementById('homeContent').classList.remove('hidden');
   toast(wasEdit?'✅ 已更新':'✅ 已保存');
 }
 
@@ -580,7 +672,7 @@ function renderTopBar(){
     const stats=document.getElementById('topStats');
     if(age||days){ stats.style.display='flex'; stats.innerHTML=(age?'<div class="top-stat">🐱 '+age.yrs+'岁'+age.mos+'个月</div>':'')+(days?'<div class="top-stat">💛 已陪伴'+days+'天</div>':''); }
     else stats.style.display='none';
-    document.getElementById('editPetLink').classList.remove('hidden');
+    document.getElementById('editPetLink').style.display='inline-block';
     if(petPhoto){ img.src=petPhoto; img.style.display='block'; emoji.style.display='none'; }
     else if(pet.species==='狗'){ img.style.display='none'; emoji.style.display='flex'; emoji.textContent='🐶'; }
     else { img.src='cat-cover.png'; img.style.display='block'; emoji.style.display='none'; }
@@ -670,9 +762,9 @@ function renderWeight(){
       `<div style="font-size:32px;font-weight:900;">${last.weight}<span style="font-size:14px;color:var(--muted);">kg</span></div>`+
       `<div style="font-size:12px;color:var(--muted);">`+(diff?`较上次 ${diff>0?'↑':'↓'}${Math.abs(diff)}kg · `:'')+last.date+' · 共'+w.length+'条</div>';
     // Trend
-    const trend=w.slice(0,6).reverse();
-    const maxW=Math.max(...trend.map(x=>x.weight));
-    document.getElementById('weightTrend').innerHTML='<h3>近6次趋势</h3><div class="trend-bar-wrap">'+
+    const trend=w.slice(0,12).reverse();
+    const maxW=Math.max(...trend.map(x=>x.weight),1);
+    document.getElementById('weightTrend').innerHTML='<h3>近12次趋势</h3><div class="trend-bar-wrap">'+
       trend.map(x=>`<div class="trend-bar" style="height:${Math.max(4,(x.weight/maxW)*70)}px;"><div class="bar-val">${x.weight}</div><div class="bar-date">${x.date.slice(5)}</div></div>`).join('')+
       '</div>';
     // Table
@@ -727,6 +819,24 @@ function renderSpending(){
 
 // ═══ Render: More ═══
 function renderMore(){
+  // Pet switcher
+  const pl = document.getElementById('petList');
+  if(pets.length > 0){
+    pl.innerHTML = pets.map(p => {
+      const age = calcAge(p.birth);
+      const info = [p.species, age ? age.yrs+'岁'+(age.mos>0?age.mos+'个月':'') : ''].filter(Boolean).join(' · ');
+      const isActive = p.id === currentPetId;
+      return `<div class="rec-row" style="cursor:pointer;${isActive?'background:#FFF0E7;border-radius:8px;padding:6px 8px;':''}" onclick="switchPet('${p.id}')">
+        <span>${p.name} · ${info}</span>
+        <span>${isActive?'✅ 当前':''}</span>
+      </div>`;
+    }).join('');
+    if(pets.length < 5 && planLevel === 'complete'){
+      pl.innerHTML += '<div class="rec-row" style="cursor:pointer;color:var(--accent);" onclick="addNewPet()"><span>+ 添加新宠物</span></div>';
+    }
+  } else {
+    pl.innerHTML = '<div style="font-size:11px;color:var(--muted);">还没有宠物档案</div>';
+  }
   document.getElementById('morePlanBadge').textContent=planLevel==='complete'?'👑 完整版':planLevel==='single'?'⭐ 单宠版':'🆓 免费体验版';
   const eb=document.getElementById('exportArea');
   const hasRecords=pet&&(vaccines.length||deworms.length||weights.length);
@@ -765,14 +875,19 @@ function refreshAll(){
 
 // ═══ Demo ═══
 function loadDemo(){
-  pet={name:'咪咪',species:'猫',birth:'2025-01-15',arrival:'2025-03-01'};
+  const id = 'pet' + Date.now();
+  pet={id, name:'咪咪',species:'猫',birth:'2025-01-15',arrival:'2025-03-01'};
+  pets = [pet];
+  currentPetId = id;
+  localStorage.setItem('pn_pets', JSON.stringify(pets));
+  localStorage.setItem('pn_currentPet', currentPetId);
   vaccines=[{type:'猫三联',date:'2025-08-15',hospital:'爱诺宠物医院',proof:'疫苗本已拍照'}];
   deworms=[{type:'外驱（每月）',date:'2026-05-01'},{type:'内驱（每3月）',date:'2026-03-01'}];
   weights=[{date:'2026-05-01',weight:4.2},{date:'2026-04-01',weight:4.0},{date:'2026-03-01',weight:3.8},{date:'2026-02-01',weight:3.5},{date:'2026-01-01',weight:3.2},{date:'2025-12-01',weight:2.9}];
   visits=[{date:'2026-04-15',hospital:'爱诺宠物医院',reason:'年度体检',diagnosis:'健康',cost:380,proof:'微信收藏'}];
   meds=[{name:'海乐妙',dosage:'半片/次',start:'2026-03-01',end:'2026-03-03'}];
   expenses=[{date:'2026-05-01',category:'食品',item:'猫粮',amount:189},{date:'2026-04-20',category:'用品',item:'猫砂',amount:45},{date:'2026-04-15',category:'医疗',item:'体检',amount:380},{date:'2026-03-01',category:'食品',item:'猫粮',amount:189}];
-  planLevel='complete'; localStorage.setItem('pn_plan',planLevel);
+  planLevel='complete'; petPhoto=null;
   save(); document.getElementById('homeEmpty').classList.add('hidden'); document.getElementById('homeContent').classList.remove('hidden');
   document.getElementById('setupOverlay').classList.add('hidden');
   toast('📋 已加载示例数据（完整版）');
@@ -788,9 +903,11 @@ function onSpeciesChange(){
 if(pet){
   document.getElementById('homeEmpty').classList.add('hidden');
   document.getElementById('homeContent').classList.remove('hidden');
+} else {
+  document.getElementById('homeEmpty').classList.remove('hidden');
+  document.getElementById('homeContent').classList.add('hidden');
 }
 refreshAll();
-if(!pet){ document.getElementById('homeEmpty').classList.remove('hidden'); document.getElementById('homeContent').classList.add('hidden'); }
 </script>
 </body>
 </html>
