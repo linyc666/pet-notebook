@@ -416,6 +416,7 @@ let currentTab = 'home';
 let healthSubTab = 'vac';
 let spendSubTab = 'add';
 let editing = null;
+let creatingNewPet = false;
 let customVacInterval = null, customDewOuter = null, customDewInner = null;
 const FREE_VAC = 1, FREE_DEW = 2;
 
@@ -464,6 +465,7 @@ function switchPet(petId){
   document.getElementById('mainContent').scrollTop = 0;
 }
 function addNewPet(){
+  creatingNewPet = true;
   document.getElementById('petName').value = '';
   document.getElementById('petSpecies').value = '猫';
   document.getElementById('petBirth').value = '';
@@ -507,10 +509,9 @@ function showSetup(){
 function editPet(){ showSetup(); }
 function savePet(){
   const n=document.getElementById('petName').value.trim(); if(!n) return toast('请填写名字');
-  const wasEdit=!!pet;
-  const isNewPet = !wasEdit && !currentPetId;
-  if(isNewPet || (!wasEdit && currentPetId && pet && pet.name !== n)){
-    // Creating a new pet (not editing existing)
+  const wasEdit = !!pet && !creatingNewPet;
+  if(creatingNewPet || !currentPetId){
+    // Creating a new pet
     const id = 'pet' + Date.now();
     pet = {id, name:n, species:document.getElementById('petSpecies').value, birth:document.getElementById('petBirth').value||null, arrival:document.getElementById('petArrival').value||null};
     pets.push(pet);
@@ -518,6 +519,7 @@ function savePet(){
     currentPetId = id;
     localStorage.setItem('pn_currentPet', currentPetId);
     vaccines = []; deworms = []; weights = []; visits = []; meds = []; expenses = []; petPhoto = null;
+    creatingNewPet = false;
   } else {
     pet.name = n;
     pet.species = document.getElementById('petSpecies').value;
