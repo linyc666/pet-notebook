@@ -338,13 +338,13 @@ body { font-family:"PingFang SC","Noto Sans SC","Microsoft YaHei",sans-serif; co
 <div id="pricingOverlay" class="hidden" style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.3);z-index:20;display:flex;align-items:center;justify-content:center;">
   <div class="card" style="width:90%;max-width:360px;max-height:90vh;overflow-y:auto;">
     <h3>⭐ 版本选择</h3>
-    <div style="padding:10px;border-radius:14px;margin:6px 0;background:#fff;border:1px solid #E8E0D5;" onclick="selectedPlan='single';document.querySelectorAll('#pricingOverlay .plan-opt').forEach(e=>e.style.borderColor='#E8E0D5');event.currentTarget.style.borderColor='var(--accent)';" class="plan-opt">
-      <div style="font-weight:800;">🆓 免费体验版 · ¥0</div><div style="font-size:10px;color:var(--muted);">疫苗1条 · 驱虫各1条 · 可预览</div>
+    <div class="plan-card" data-plan="free" onclick="selectCardPlan('free')" style="padding:10px;border-radius:14px;margin:6px 0;background:#fff;border:2px solid #E8E0D5;cursor:pointer;">
+      <div style="font-weight:800;">🆓 免费体验版 · ¥0</div><div style="font-size:10px;color:var(--muted);">疫苗1条 · 驱虫各1条 · 可预览（默认）</div>
     </div>
-    <div style="padding:10px;border-radius:14px;margin:6px 0;background:#fff;border:2px solid var(--accent);" onclick="selectedPlan='single';" class="plan-opt">
+    <div class="plan-card" data-plan="single" onclick="selectCardPlan('single')" style="padding:10px;border-radius:14px;margin:6px 0;background:#fff;border:2px solid var(--accent);cursor:pointer;">
       <div style="font-weight:800;">⭐ 单宠版 · ¥9.9 <span style="font-size:10px;color:var(--green);">一次性</span></div><div style="font-size:10px;color:var(--muted);">无限记录 · 体重 · 就诊 · 用药 · 导出</div>
     </div>
-    <div style="padding:10px;border-radius:14px;margin:6px 0;background:#fff;border:1px solid #E8E0D5;" onclick="selectedPlan='complete';" class="plan-opt">
+    <div class="plan-card" data-plan="complete" onclick="selectCardPlan('complete')" style="padding:10px;border-radius:14px;margin:6px 0;background:#fff;border:2px solid #E8E0D5;cursor:pointer;">
       <div style="font-weight:800;">👑 完整版 · ¥19.9 <span style="font-size:10px;color:var(--green);">一次性</span></div><div style="font-size:10px;color:var(--muted);">单宠版全部 + 多宠 + 花费 + 后续更新</div>
     </div>
     <div class="form-row"><div class="form-group"><label>专属访问码</label><input type="text" id="accessCode" placeholder="下单后获取"></div></div>
@@ -550,13 +550,20 @@ function showQuickForm(type){
 }
 
 // ═══ Pricing ═══
-function showPricing(){ selectedPlan='single'; document.getElementById('pricingOverlay').classList.remove('hidden'); }
+function selectCardPlan(plan){
+  selectedPlan = plan === 'free' ? null : plan;
+  document.querySelectorAll('.plan-card').forEach(card => {
+    card.style.borderColor = card.dataset.plan === plan ? '#E98B62' : '#E8E0D5';
+    card.style.background = card.dataset.plan === plan ? '#FFF0E7' : '#fff';
+  });
+}
+function showPricing(){ selectedPlan = null; document.getElementById('pricingOverlay').classList.remove('hidden'); selectCardPlan('free'); }
 function unlock(){
   const code=document.getElementById('accessCode').value.trim().toUpperCase();
   if(!selectedPlan||!code) return toast('请选择方案并输入访问码');
   function hash(s){ let h1=2166136261,h2=5381; for(let i=0;i<s.length;i++){ h1^=s.charCodeAt(i); h1=Math.imul(h1,16777619); h2=((h2<<5)+h2)+s.charCodeAt(i); } return (h1>>>0).toString(16).padStart(8,'0')+(h2>>>0).toString(16).padStart(8,'0'); }
-  const SINGLE=['071021e0f856a046','b48c30983602c658','b09c871f62e87881','4e2af807adf917d9','18743161ba99e8bf','18f58cadf7bb4385'];
-  const COMPLETE=['429ce966631ccc50','010fd5fc5de5a190','8420a8f4a7c598f0','b1fde12c9243047c','c9cb22fb634c3e7f','710cd64383a00615'];
+  const SINGLE=['071021e0f856a046','b48c30983602c658','b09c871f62e87881','4e2af807adf917d9','18743161ba99e8bf','18f58cadf7bb4385','9ad0563845724b08','c96cbfc6edf043c0','341e33e32f4313d3','fbdbad6ce2e8ca42','5bd4afa194ee6523','c287b1ae818bf410','e7f41d9e9e68e3a6','678cf6f92898b909','8af866d3650e6d25','4d9fb25de76def17','3c285ab7c70f5f6d','2a08a39d223c9371','c5a13dc7335584fd','def6dad0eab62638'];
+  const COMPLETE=['429ce966631ccc50','010fd5fc5de5a190','8420a8f4a7c598f0','b1fde12c9243047c','c9cb22fb634c3e7f','710cd64383a00615','c431d88f01caafcb','0c8905fe6af64262','0dfed0ce51a40206','95b9251c238762ee','211e35a5d761ec87','274a8672b6bf1bf0','f43544ce3ee9df88','3701e788ee20a5dc','d38b88a18314a837','264e1641e66556e9','4adb309ef9191552','662d3f75eb4c381f','68bcdec865cc14dc','d5243c28ecf0307a'];
   const list=selectedPlan==='complete'?COMPLETE:SINGLE;
   if(list.includes(hash(code))){ planLevel=selectedPlan; localStorage.setItem('pn_plan',planLevel); document.getElementById('pricingOverlay').classList.add('hidden'); refreshAll(); toast('🎉 已解锁！'); }
   else toast('❌ 访问码无效');
