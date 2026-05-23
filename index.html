@@ -4,8 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>宠物本本</title>
-
-<!-- PWA -->
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#E98B62">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -13,481 +11,358 @@
 <meta name="apple-mobile-web-app-title" content="宠物本本">
 <link rel="apple-touch-icon" href="cat-cover.png">
 <link rel="icon" href="cat-cover.png">
-
 <style>
-:root {
-  --accent: #E98B62; --accent-light: #FFF0E7;
-  --green: #6F9C80; --green-light: #E6F2EA;
-  --ink: #3D2C2A; --muted: #9B8E89;
-}
+:root { --accent:#E98B62; --accent-light:#FFF0E7; --green:#6F9C80; --green-light:#E6F2EA; --ink:#3D2C2A; --muted:#9B8E89; --bg:#F4F1EA; --red:#D44; --pink-light:#FFE8E8; --blue-light:#E8F0FE; }
 * { margin:0; padding:0; box-sizing:border-box; }
-body {
-  font-family:"PingFang SC","Noto Sans SC","Microsoft YaHei",sans-serif;
-  color:var(--ink);
-  min-height:100vh;
-  background:
-    radial-gradient(circle at 70% 15%, #fff 0, transparent 28%),
-    linear-gradient(180deg, #F4F1EA 0%, #FFF9F3 45%, #FFFFFF 100%);
-  background-attachment:fixed;
-}
-.container { max-width:440px; margin:0 auto; padding:12px; }
+body { font-family:"PingFang SC","Noto Sans SC","Microsoft YaHei",sans-serif; color:var(--ink); background:var(--bg); min-height:100vh; -webkit-tap-highlight-color:transparent; }
+#app { max-width:440px; margin:0 auto; min-height:100vh; display:flex; flex-direction:column; }
 
-/* ═══ Header ═══ */
-.header { text-align:center; padding:20px 0 8px; }
-.header h1 { font-size:20px; font-weight:900; letter-spacing:-0.3px; }
-.header .desc { font-size:12px; color:var(--muted); margin-top:3px; }
+/* Top Bar */
+.top-bar { padding:16px 16px 8px; text-align:center; background:linear-gradient(180deg,#FFFCF9,#FFF8F5); position:sticky; top:0; z-index:10; }
+.top-bar .pet-row { display:flex; align-items:center; justify-content:center; gap:10px; }
+.top-avatar { width:52px; height:52px; border-radius:50%; object-fit:cover; border:2px solid #fff; box-shadow:0 2px 12px rgba(80,60,40,0.1); }
+.top-avatar-placeholder { width:52px; height:52px; border-radius:50%; background:linear-gradient(135deg,#FFD4BA,#FFF0E8); display:flex; align-items:center; justify-content:center; font-size:28px; }
+.top-info { text-align:left; }
+.top-info .name { font-size:16px; font-weight:900; }
+.top-info .meta { font-size:11px; color:var(--muted); }
+.top-stats { display:flex; gap:8px; justify-content:center; margin-top:6px; flex-wrap:wrap; }
+.top-stat { font-size:10px; background:rgba(255,255,255,0.7); border-radius:10px; padding:3px 10px; font-weight:600; }
+.edit-pet-link { font-size:10px; color:var(--accent); cursor:pointer; text-decoration:underline; margin-top:4px; display:inline-block; }
 
-/* ═══ Glass Card ═══ */
-.card {
-  background:rgba(255,255,255,0.72);
-  backdrop-filter:blur(16px);
-  -webkit-backdrop-filter:blur(16px);
-  border:1px solid rgba(255,255,255,0.75);
-  box-shadow:0 12px 40px rgba(80,60,40,0.08);
-  border-radius:28px;
-  padding:18px;
-  margin-bottom:12px;
-}
-.card h2 { font-size:15px; font-weight:800; margin-bottom:10px; display:flex; align-items:center; gap:6px; }
+/* Main Content */
+.main-content { flex:1; padding:0 12px 80px 12px; overflow-y:auto; }
+.page { display:none; }
+.page.active { display:block; }
 
-/* ═══ Hero ═══ */
-.hero { text-align:center; padding:6px 0 10px; }
-.hero-pet { margin:0 auto 10px; position:relative; cursor:pointer; display:inline-block; }
-.hero-pet img {
-  width:120px; height:120px; border-radius:50%;
-  object-fit:cover;
-  box-shadow:0 8px 32px rgba(80,60,40,0.12);
-  border:3px solid rgba(255,255,255,0.8);
-}
-.hero-pet .upload-plus {
-  position:absolute; bottom:4px; right:4px;
-  width:28px; height:28px; border-radius:50%;
-  background:var(--accent); color:#fff;
-  border:2px solid #fff;
-  font-size:16px; line-height:24px; text-align:center;
-  cursor:pointer; pointer-events:auto;
-  box-shadow:0 2px 8px rgba(233,139,98,0.3);
-  transition:transform 0.15s;
-  z-index:2;
-}
-.hero-pet .upload-plus:hover { transform:scale(1.12); }
-.hero .greeting { font-size:22px; font-weight:900; margin:6px 0 2px; }
-.hero .greeting-sub { font-size:13px; color:var(--muted); }
+/* Cards */
+.card { background:rgba(255,255,255,0.78); border-radius:18px; padding:14px 16px; margin-bottom:10px; border:1px solid rgba(0,0,0,0.04); box-shadow:0 4px 16px rgba(80,60,40,0.04); }
+.card h3 { font-size:14px; font-weight:800; margin-bottom:8px; }
+.card-row { display:flex; justify-content:space-between; align-items:center; padding:7px 0; border-bottom:1px solid rgba(0,0,0,0.03); font-size:12px; }
+.card-row:last-child { border-bottom:none; }
 
-/* ═══ Inline pet icon ═══ */
-.pet-icon-inline { width:20px; height:20px; border-radius:50%; object-fit:cover; vertical-align:middle; display:inline-block; }
-.species-icon { display:inline-block; vertical-align:middle; }
+/* Quick Action Grid */
+.quick-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
+.quick-btn { background:#fff; border-radius:14px; padding:14px 8px; text-align:center; font-size:12px; font-weight:700; border:1px solid rgba(0,0,0,0.04); cursor:pointer; box-shadow:0 2px 8px rgba(0,0,0,0.03); transition:transform 0.1s; }
+.quick-btn:active { transform:scale(0.96); }
+.quick-btn .icon { font-size:28px; display:block; margin-bottom:4px; }
 
-/* ═══ Health Card Preview ═══ */
-.health-card {
-  background:linear-gradient(135deg,#FFFCF7,#F8F4EC);
-  border-radius:22px;
-  border:2px dashed rgba(233,139,98,0.18);
-  box-shadow:0 4px 20px rgba(80,60,40,0.06);
-  margin-bottom:10px;
-  overflow:hidden;
-}
-.hc-header {
-  background:linear-gradient(135deg,rgba(233,139,98,0.08),rgba(111,156,128,0.06));
-  padding:10px 16px;
-  border-bottom:1px solid rgba(0,0,0,0.04);
-  display:flex; align-items:center; justify-content:space-between;
-}
-.hc-header .hc-title { font-size:14px; font-weight:800; }
-.hc-header .hc-tag {
-  font-size:9px; background:rgba(255,255,255,0.7);
-  color:var(--muted); padding:3px 8px; border-radius:8px;
-  margin-left:6px; border:1px solid rgba(0,0,0,0.06);
-  display:inline-block;
-}
-.hc-body { padding:14px 16px 12px; }
-.health-card .hc-row { display:flex; justify-content:space-between; align-items:center; padding:7px 0; font-size:13px; }
-.health-card .hc-label { color:var(--muted); font-size:12px; }
-.health-card .hc-value { font-weight:700; font-size:13px; }
-.health-card .hc-value.green { color:var(--green); }
-.health-card .hc-value.warn { color:var(--accent); }
-.health-card .hc-value.muted { color:var(--muted); font-weight:400; font-size:12px; }
-.health-card .hc-complete { margin-top:10px; }
-.health-card .hc-complete .bar { height:6px; background:#EDE8E0; border-radius:3px; overflow:hidden; margin-top:3px; }
-.health-card .hc-complete .fill { height:100%; background:linear-gradient(90deg,var(--accent),var(--green)); border-radius:3px; transition:width 0.5s; }
-.health-card .hc-complete .txt { font-size:11px; color:var(--muted); }
+/* Reminder Cards */
+.remind-item { display:flex; align-items:center; gap:8px; padding:8px 0; font-size:13px; }
+.remind-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+.remind-dot.ok { background:var(--green); }
+.remind-dot.warn { background:var(--accent); }
+.remind-dot.over { background:var(--red); }
 
-/* ═══ Button ═══ */
-.btn {
-  display:block; width:100%; padding:14px 20px;
-  border:none; border-radius:999px;
-  font-size:15px; font-weight:700; cursor:pointer; font-family:inherit;
-  text-align:center;
-  transition:all 0.15s;
-}
-.btn-primary { background:var(--accent); color:#fff; box-shadow:0 4px 20px rgba(233,139,98,0.25); }
-.btn-outline {
-  background:rgba(255,255,255,0.6); color:var(--ink);
-  border:1.5px solid rgba(0,0,0,0.08);
-  backdrop-filter:blur(8px);
-}
-.btn-sm { width:auto; display:inline-block; padding:10px 20px; font-size:13px; }
-.btn-green { background:var(--green); color:#fff; box-shadow:0 4px 20px rgba(111,156,128,0.25); }
+/* Status Badge */
+.badge { display:inline-block; padding:2px 7px; border-radius:8px; font-size:10px; font-weight:700; }
+.badge-ok { background:var(--green-light); color:var(--green); }
+.badge-warn { background:var(--accent-light); color:var(--accent); }
+.badge-over { background:var(--pink-light); color:var(--red); }
 
-.hero-btns { display:flex; gap:10px; justify-content:center; margin:12px 0 6px; flex-wrap:wrap; }
-.hero-btns .btn { flex:1; min-width:120px; }
+/* Sub Tabs */
+.sub-tabs { display:flex; gap:4px; margin-bottom:10px; background:rgba(0,0,0,0.03); border-radius:12px; padding:3px; }
+.sub-tab { flex:1; text-align:center; padding:7px 0; border-radius:10px; font-size:12px; font-weight:700; cursor:pointer; transition:all 0.15s; }
+.sub-tab.active { background:#fff; box-shadow:0 1px 4px rgba(0,0,0,0.06); }
 
-/* ═══ Form ═══ */
-.form-row { display:flex; gap:8px; margin-bottom:8px; flex-wrap:wrap; }
-.form-group { flex:1; min-width:80px; }
-.form-group label { display:block; font-size:11px; color:var(--muted); margin-bottom:3px; font-weight:600; }
-.form-group input, .form-group select {
-  width:100%; padding:10px 12px;
-  border:1.5px solid #EBE4DA; border-radius:14px;
-  font-size:13px; font-family:inherit;
-  background:rgba(255,255,255,0.7); outline:none;
-}
+/* Form */
+.form-row { display:flex; gap:8px; margin-bottom:6px; flex-wrap:wrap; }
+.form-group { flex:1; min-width:70px; }
+.form-group label { display:block; font-size:10px; color:var(--muted); margin-bottom:2px; font-weight:600; }
+.form-group input, .form-group select { width:100%; padding:9px 10px; border:1.5px solid #EBE4DA; border-radius:12px; font-size:12px; background:#FFFAF7; outline:none; font-family:inherit; }
 .form-group input:focus, .form-group select:focus { border-color:var(--accent); }
+.btn { display:block; width:100%; padding:10px; border:none; border-radius:20px; font-size:13px; font-weight:700; cursor:pointer; text-align:center; font-family:inherit; }
+.btn-primary { background:var(--accent); color:#fff; }
+.btn-outline { background:#fff; border:1.5px solid #E8E0D5; color:var(--ink); }
+.btn-sm { width:auto; display:inline-block; padding:7px 16px; font-size:11px; }
+.btn-green { background:var(--green); color:#fff; }
 
-/* ═══ Fold ═══ */
-.fold-header { display:flex; justify-content:space-between; align-items:center; cursor:pointer; }
-.fold-body { display:none; padding-top:8px; }
-.fold-body.open { display:block; }
+/* Record row with actions */
+.rec-row { display:flex; justify-content:space-between; align-items:center; padding:6px 0; font-size:11px; border-bottom:1px solid rgba(0,0,0,0.03); }
+.rec-row:last-child { border-bottom:none; }
+.rec-actions { white-space:nowrap; }
+.rec-actions span { cursor:pointer; color:var(--muted); margin-left:4px; font-size:13px; }
 
-/* ═══ Lock ═══ */
-.lock-tag { font-size:10px; background:var(--accent-light); color:var(--accent); padding:3px 8px; border-radius:6px; white-space:nowrap; }
+/* Month selector */
+.month-tabs { display:flex; gap:4px; flex-wrap:wrap; }
+.month-tag { padding:4px 10px; border-radius:12px; font-size:11px; cursor:pointer; background:#fff; border:1px solid #E8E0D5; }
+.month-tag.active { background:var(--accent); color:#fff; border-color:var(--accent); }
 
-/* ═══ Price ═══ */
-.price-card {
-  background:rgba(255,255,255,0.6); border:1px solid rgba(0,0,0,0.04);
-  border-radius:18px; padding:14px; margin-bottom:8px;
-  display:flex; justify-content:space-between; align-items:center;
-  backdrop-filter:blur(8px);
-}
-.price-card.featured { border-color:var(--accent); background:rgba(255,252,247,0.8); }
-.price-card.selectable { cursor:pointer; transition:all 0.15s; }
-.price-card.selectable:hover { transform:translateY(-1px); box-shadow:0 6px 20px rgba(233,139,98,0.15); }
-.price-card.selected { border-color:var(--accent); background:rgba(255,240,231,0.55); box-shadow:0 0 0 2px rgba(233,139,98,0.22); }
-.price-card .pc-name { font-size:14px; font-weight:800; }
-.price-card .pc-feat { font-size:11px; color:var(--muted); margin-top:3px; line-height:1.5; }
-.price-card .pc-price { font-size:22px; font-weight:900; color:var(--accent); }
-.price-card .pc-unit { font-size:10px; color:var(--muted); }
-.badge { display:inline-block; background:var(--green); color:#fff; font-size:10px; padding:2px 7px; border-radius:6px; margin-left:4px; }
+/* Weight trend bars */
+.trend-bar-wrap { display:flex; align-items:flex-end; gap:6px; height:80px; justify-content:center; padding:8px 0; }
+.trend-bar { width:32px; border-radius:6px 6px 0 0; background:var(--accent); opacity:0.7; position:relative; min-height:4px; }
+.trend-bar .bar-val { position:absolute; top:-16px; left:50%; transform:translateX(-50%); font-size:9px; color:var(--muted); }
+.trend-bar .bar-date { position:absolute; bottom:-16px; left:50%; transform:translateX(-50%); font-size:8px; color:var(--muted); white-space:nowrap; }
 
-/* ═══ Record items ═══ */
-.rec-item { font-size:12px; padding:5px 0; border-bottom:1px solid rgba(0,0,0,0.03); display:flex; justify-content:space-between; align-items:center; }
+/* Category bar */
+.cat-bar-wrap { margin:4px 0; }
+.cat-bar-row { display:flex; align-items:center; gap:8px; margin:4px 0; font-size:11px; }
+.cat-bar-label { width:40px; text-align:right; flex-shrink:0; }
+.cat-bar-track { flex:1; height:16px; background:rgba(0,0,0,0.04); border-radius:8px; overflow:hidden; }
+.cat-bar-fill { height:100%; border-radius:8px; }
+.cat-bar-val { width:55px; font-size:10px; color:var(--muted); }
 
-/* ═══ Misc ═══ */
-.disclaimer { font-size:10px; color:var(--muted); margin-top:6px; }
-.toast { position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:var(--ink); color:#fff; padding:10px 20px; border-radius:20px; font-size:13px; z-index:999; opacity:0; transition:opacity 0.3s; pointer-events:none; }
-.toast.show { opacity:1; }
-.footer { text-align:center; padding:18px; font-size:10px; color:var(--muted); line-height:1.7; }
-.hidden { display:none; }
+/* Bottom Nav */
+.bottom-nav { position:fixed; bottom:0; left:50%; transform:translateX(-50%); width:100%; max-width:440px; background:rgba(255,255,255,0.92); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); border-top:1px solid rgba(0,0,0,0.06); display:flex; padding:6px 0 env(safe-area-inset-bottom,8px) 0; z-index:10; }
+.nav-item { flex:1; text-align:center; cursor:pointer; padding:4px 0; font-size:10px; font-weight:600; color:var(--muted); transition:color 0.15s; }
+.nav-item.active { color:var(--accent); }
+.nav-item .nav-icon { font-size:22px; display:block; margin-bottom:1px; }
 
-/* ═══ Pet Stats ═══ */
-.pet-stats { display:flex; gap:10px; justify-content:center; margin:8px 0 0; flex-wrap:wrap; }
-.pet-stat {
-  background:rgba(255,255,255,0.65); border-radius:12px;
-  padding:6px 14px; font-size:12px; font-weight:600;
-  border:1px solid rgba(0,0,0,0.05);
-}
-.pet-stat .num { font-weight:900; }
-
-/* ═══ Status Badge ═══ */
-.status-badge {
-  display:inline-block; padding:2px 8px; border-radius:10px;
-  font-size:10px; font-weight:700; margin-left:4px;
-}
-.status-ok { background:var(--green-light); color:var(--green); }
-.status-warn { background:var(--accent-light); color:var(--accent); }
-.status-over { background:#FFE8E8; color:#D44; }
-
-/* ═══ Know Card ═══ */
-.know-card {
-  background:linear-gradient(135deg,#F8F9FB,#F0F4F8);
-  border-radius:14px; padding:14px 16px; margin-top:10px;
-  border:1px solid #E5EAF0; font-size:11px; color:#6B7B8D;
-  line-height:1.7; max-height:80px; overflow:hidden; transition:max-height 0.3s;
-}
-.know-card.open { max-height:600px; }
-.know-card .know-title {
-  font-size:12px; font-weight:800; color:var(--ink);
-  cursor:pointer; display:flex; justify-content:space-between; align-items:center;
-}
-.know-card .know-title::after { content:'展开 ▾'; font-size:10px; color:var(--muted); }
+/* Know card */
+.know-card { background:#F8F9FB; border-radius:12px; padding:10px 14px; margin-top:8px; font-size:10px; color:#6B7B8D; line-height:1.6; max-height:60px; overflow:hidden; transition:max-height 0.3s; border:1px solid #E5EAF0; }
+.know-card.open { max-height:400px; }
+.know-card .know-title { font-size:11px; font-weight:800; color:var(--ink); cursor:pointer; display:flex; justify-content:space-between; }
+.know-card .know-title::after { content:'展开 ▾'; font-size:9px; color:var(--muted); }
 .know-card.open .know-title::after { content:'收起 ▴'; }
-.know-card ul { margin:6px 0 0 14px; }
-.know-card li { margin-bottom:2px; }
-.know-disclaimer { margin-top:6px; font-style:italic; color:var(--accent); }
+.know-card ul { margin:4px 0 0 12px; }
+.know-disclaimer { margin-top:4px; font-style:italic; color:var(--accent); font-size:9px; }
+
+/* Toast */
+.toast { position:fixed; bottom:100px; left:50%; transform:translateX(-50%); background:var(--ink); color:#fff; padding:10px 20px; border-radius:20px; font-size:13px; z-index:999; opacity:0; transition:opacity 0.3s; pointer-events:none; }
+.toast.show { opacity:1; }
+.hidden { display:none !important; }
+.footer-note { text-align:center; padding:12px; font-size:9px; color:var(--muted); }
 </style>
 </head>
 <body>
-<div class="container">
+<div id="app">
 
-<!-- ═══ Header ═══ -->
-<div class="header">
-  <h1>宠物本本 · 提醒生成版</h1>
-  <div class="desc">填写记录，自动算出下次疫苗 / 驱虫时间</div>
-</div>
-
-<!-- ═══ Hero ═══ -->
-<div class="hero" id="heroArea">
-  <div class="hero-pet" onclick="document.getElementById('photoInput').click()" title="点击上传宠物照片">
-    <img src="cat-cover.png" alt="宠物头像" id="heroImg"
-         onerror="this.style.display='none';document.getElementById('heroEmoji').style.display='flex';"
-         style="display:block;">
-    <div id="heroEmoji" style="display:none;width:120px;height:120px;border-radius:50%;background:linear-gradient(135deg,#FFF0E7,#FFDDCB);margin:0 auto;align-items:center;justify-content:center;font-size:56px;">🐱</div>
-    <button class="upload-plus" onclick="event.stopPropagation();document.getElementById('photoInput').click()">+</button>
+<!-- Top Bar -->
+<div class="top-bar" id="topBar">
+  <div class="pet-row">
+    <img class="top-avatar" id="topImg" src="cat-cover.png" onerror="this.style.display='none';document.getElementById('topEmoji').style.display='flex';">
+    <div class="top-avatar-placeholder" id="topEmoji" style="display:none;">🐱</div>
+    <div class="top-info">
+      <div class="name" id="topName">宠物本本</div>
+      <div class="meta" id="topMeta">填写信息开始记录</div>
+    </div>
   </div>
+  <div class="top-stats" id="topStats" style="display:none;"></div>
+  <div class="edit-pet-link hidden" id="editPetLink" onclick="editPet()">✎ 编辑档案</div>
   <input type="file" id="photoInput" accept="image/*" style="display:none" onchange="uploadPhoto(event)">
-  <div class="greeting" id="heroGreeting">宠物健康卡</div>
-  <div class="greeting-sub" id="heroSub">填写信息后自动生成提醒</div>
-  <div class="pet-stats" id="petStats" style="display:none;">
-    <div class="pet-stat" id="statAge">🐱 <span class="num">—</span> 岁</div>
-    <div class="pet-stat" id="statDays">💛 已陪伴 <span class="num">—</span> 天</div>
-  </div>
-  <div style="font-size:10px;color:var(--muted);margin-top:6px;" id="editPetLink" class="hidden">
-    <span style="cursor:pointer;text-decoration:underline;" onclick="editPet()">✎ 编辑档案</span>
-  </div>
-  <div style="font-size:10px;color:var(--muted);margin-top:6px;" id="petEmptyHint">可上传宠物照片，也可以直接填写</div>
 </div>
 
-<!-- ═══ Health Card Preview ═══ -->
-<div style="text-align:center;font-size:11px;color:var(--muted);margin-bottom:6px;">↓ 填完后会生成这样的卡片 ↓</div>
-<div class="health-card" id="healthCard">
-  <div class="hc-header">
-    <span class="hc-title"><span class="species-icon" id="hcPetIcon">🐱</span> 宠物健康卡</span>
-    <span><span class="hc-tag">本地生成</span><span class="hc-tag">可打印</span></span>
-  </div>
-  <div class="hc-body">
-    <div class="hc-row"><span class="hc-label">💉 下次疫苗</span><span class="hc-value muted" id="hcVaccine">填写后自动计算</span></div>
-    <div class="hc-row"><span class="hc-label">🪱 下次外驱</span><span class="hc-value muted" id="hcOuter">填写后自动计算</span></div>
-    <div class="hc-row"><span class="hc-label">🪱 下次内驱</span><span class="hc-value muted" id="hcInner">填写后自动计算</span></div>
-    <div class="hc-complete">
-      <div style="display:flex;justify-content:space-between;align-items:center;">
-        <span class="txt" id="hcItems">已填写 0/3 项</span>
-        <span class="txt" style="font-size:10px;">宠物信息 / 疫苗 / 驱虫</span>
+<!-- Main Content -->
+<div class="main-content" id="mainContent">
+
+  <!-- Page: Home -->
+  <div class="page active" id="page-home">
+    <div id="homeEmpty" style="text-align:center;padding:40px 20px;">
+      <div style="font-size:64px;margin-bottom:16px;">🐱</div>
+      <div style="font-size:16px;font-weight:800;margin-bottom:6px;">还没建档</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:16px;">点击下面开始记录～</div>
+      <button class="btn btn-primary btn-sm" onclick="showSetup()">开始 →</button>
+    </div>
+    <div id="homeContent" class="hidden">
+      <!-- Today Reminders -->
+      <div class="card" id="reminderCard">
+        <h3>📋 今日提醒</h3>
+        <div id="reminderList"></div>
+        <div id="reminderEmpty" style="font-size:11px;color:var(--muted);text-align:center;padding:8px;">暂无待办提醒 ✅</div>
       </div>
-      <div class="bar"><div class="fill" id="hcBar" style="width:0%;"></div></div>
+      <!-- Quick Record -->
+      <div class="card">
+        <h3>快捷记录</h3>
+        <div class="quick-grid">
+          <div class="quick-btn" onclick="quickRecord('vac')"><span class="icon">💉</span>疫苗</div>
+          <div class="quick-btn" onclick="quickRecord('dew')"><span class="icon">🪱</span>驱虫</div>
+          <div class="quick-btn" onclick="quickRecord('wt')"><span class="icon">⚖️</span>体重</div>
+          <div class="quick-btn" onclick="quickRecord('spend')"><span class="icon">💰</span>花费</div>
+          <div class="quick-btn" onclick="quickRecord('visit')"><span class="icon">🏥</span>就诊</div>
+          <div class="quick-btn" onclick="quickRecord('med')"><span class="icon">💊</span>用药</div>
+        </div>
+      </div>
+      <!-- Recent Records -->
+      <div class="card" id="recentCard">
+        <h3>最近记录</h3>
+        <div id="recentList"></div>
+      </div>
+      <!-- Monthly Summary -->
+      <div class="card" id="monthSummary"></div>
     </div>
   </div>
-</div>
 
-<!-- ═══ Hero Buttons ═══ -->
-<div class="hero-btns" id="heroBtns">
-  <button class="btn btn-primary" onclick="startFill()">免费试用 ✍️</button>
-  <button class="btn btn-outline" onclick="loadDemo()">查看示例 👀</button>
-</div>
-
-<!-- ═══ Form Area (hidden until click) ═══ -->
-<div id="formArea" class="hidden">
-  <!-- Pet Setup -->
-  <div class="card" id="setupCard">
-    <h2><span class="species-icon" id="setupPetIcon">🐱</span> 宠物信息</h2>
-    <div class="form-row">
-      <div class="form-group"><label>名字</label><input type="text" id="petName" placeholder="如：咪咪"></div>
-      <div class="form-group"><label>物种</label><select id="petSpecies" onchange="onSpeciesChange()"><option>猫</option><option>狗</option></select></div>
+  <!-- Page: Health (Vaccine + Deworm) -->
+  <div class="page" id="page-health">
+    <div class="sub-tabs">
+      <div class="sub-tab active" onclick="switchHealthTab('vac')">💉 疫苗</div>
+      <div class="sub-tab" onclick="switchHealthTab('outer')">🟠 外驱</div>
+      <div class="sub-tab" onclick="switchHealthTab('inner')">🟢 内驱</div>
     </div>
-    <div class="form-row">
-      <div class="form-group"><label>出生日期（选填，用于算年龄+疫苗起点）</label><input type="date" id="petBirth"></div>
-      <div class="form-group"><label>到家日期（选填，算陪伴天数）</label><input type="date" id="petArrival"></div>
-    </div>
-    <button class="btn btn-primary btn-sm" onclick="savePet()">保存 →</button>
-  </div>
+    <div id="healthSummary" class="card"></div>
 
-  <!-- Dashboard -->
-  <div id="dashboard" class="hidden">
-
-    <!-- Vaccine -->
-    <div class="card" id="vaccineCard">
-      <h2>💉 疫苗提醒</h2>
-      <div class="form-row">
-        <div class="form-group"><label>类型</label><select id="vType"><option>猫三联</option><option>狂犬</option><option>其他</option></select></div>
-        <div class="form-group"><label>上次接种日期</label><input type="date" id="vDate"></div>
-      </div>
-      <div class="form-row">
-        <div class="form-group"><label>医院（选填）</label><input type="text" id="vHospital" placeholder="宠物医院名"></div>
-        <div class="form-group"><label>凭证位置（选填）</label><input type="text" id="vProof" placeholder="如：疫苗本已拍照存在相册"></div>
-      </div>
-      <button class="btn btn-primary btn-sm" onclick="addVaccine()">+ 添加疫苗记录</button>
-      <div class="form-row" style="margin-top:6px;">
-        <div class="form-group"><label>自定义间隔(天) · 留空=自动</label><input type="number" id="vacInterval" placeholder="幼宠21天/成年365天" style="font-size:11px;" onchange="customVacInterval=this.value?parseInt(this.value):null;refreshAll();"></div>
-      </div>
-      <div class="disclaimer">⚠️ 提醒按常见周期估算，具体安排以宠物医院建议为准</div>
-      <div id="vaccineList" style="margin-top:8px;"></div>
-      <div class="lock-tag" id="vacLimit" style="margin-top:6px;display:none;">免费版限 1 条</div>
-      <div class="know-card" onclick="this.classList.toggle('open')">
-        <div class="know-title">💉 疫苗小知识</div>
-        <ul><li>幼宠满8周龄开始接种联苗，每3~4周一针×3针，1年后加强</li><li>狂犬满12周龄接种，多数城市要求每年一次</li><li>成年后核心联苗可持续≥3年免疫力，可测抗体代替盲目年免</li><li>猫疫苗建议打腿部/尾巴，避免注射部位肉瘤风险</li></ul>
-        <div class="know-disclaimer">⚠️ 以上整理自公开资料，具体方案请咨询兽医</div>
+    <div id="healthTabVac" class="health-tab-content">
+      <div class="card">
+        <div id="vacList"></div>
+        <button class="btn btn-primary btn-sm" onclick="showVacForm()" style="margin-top:6px;">+ 新增疫苗记录</button>
+        <div id="vacForm" class="hidden" style="margin-top:8px;">
+          <div class="form-row">
+            <div class="form-group"><label>类型</label><select id="vType"><option>猫三联</option><option>狂犬</option><option>其他</option></select></div>
+            <div class="form-group"><label>接种日期</label><input type="date" id="vDate"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>医院（选填）</label><input type="text" id="vHospital" placeholder="宠物医院"></div>
+            <div class="form-group"><label>凭证位置（选填）</label><input type="text" id="vProof" placeholder="如：疫苗本已拍照"></div>
+          </div>
+          <div class="form-row"><div class="form-group"><label>自定义间隔(天) 留空=自动</label><input type="number" id="vacInterval" placeholder="幼宠21天/成年365天" onchange="customVacInterval=this.value?parseInt(this.value):null;refreshAll();"></div></div>
+          <button class="btn btn-primary btn-sm" onclick="addVaccine()">保存疫苗记录</button>
+          <div style="font-size:9px;color:var(--muted);margin-top:4px;">幼宠联苗每21天×3针→1年后加强；狂犬每年</div>
+          <div class="know-card" onclick="this.classList.toggle('open')"><div class="know-title">💉 疫苗小知识</div><ul><li>幼宠满8周龄开始接种联苗，每3~4周一针×3针</li><li>狂犬满12周龄接种，多数城市要求每年一次</li><li>成年后核心联苗可持续≥3年，可测抗体代替盲目年免</li><li>猫疫苗建议打腿部/尾巴</li></ul><div class="know-disclaimer">⚠️ 整理自公开资料，具体方案请咨询兽医</div></div>
+        </div>
       </div>
     </div>
 
-    <!-- Deworm -->
-    <div class="card" id="dewCard">
-      <h2>🪱 驱虫提醒</h2>
+    <div id="healthTabOuter" class="health-tab-content hidden">
+      <div class="card">
+        <div id="outerList"></div>
+        <button class="btn btn-primary btn-sm" onclick="showDewForm('外驱（每月）')" style="margin-top:6px;">+ 新增外驱记录</button>
+      </div>
+    </div>
+
+    <div id="healthTabInner" class="health-tab-content hidden">
+      <div class="card">
+        <div id="innerList"></div>
+        <button class="btn btn-primary btn-sm" onclick="showDewForm('内驱（每3月）')" style="margin-top:6px;">+ 新增内驱记录</button>
+      </div>
+    </div>
+
+    <!-- Deworm form (hidden, shared) -->
+    <div id="dewForm" class="hidden card">
       <div class="form-row">
         <div class="form-group"><label>类型</label><select id="dwType"><option>外驱（每月）</option><option>内驱（每3月）</option></select></div>
-        <div class="form-group"><label>最近一次日期</label><input type="date" id="dwDate"></div>
+        <div class="form-group"><label>日期</label><input type="date" id="dwDate"></div>
       </div>
-      <button class="btn btn-primary btn-sm" onclick="addDeworm()">+ 添加驱虫记录</button>
-      <div class="form-row" style="margin-top:6px;">
-        <div class="form-group"><label>外驱间隔(天) · 留空=30天</label><input type="number" id="dewOuterInt" placeholder="30" style="font-size:11px;" onchange="customDewOuter=this.value?parseInt(this.value):null;refreshAll();"></div>
-        <div class="form-group"><label>内驱间隔(天) · 留空=自动</label><input type="number" id="dewInnerInt" placeholder="幼宠30天/成年90天" style="font-size:11px;" onchange="customDewInner=this.value?parseInt(this.value):null;refreshAll();"></div>
+      <div class="form-row">
+        <div class="form-group"><label>外驱间隔(天) 留空=30</label><input type="number" id="dewOuterInt" placeholder="30" onchange="customDewOuter=this.value?parseInt(this.value):null;refreshAll();"></div>
+        <div class="form-group"><label>内驱间隔(天) 留空=自动</label><input type="number" id="dewInnerInt" placeholder="幼宠30/成年90" onchange="customDewInner=this.value?parseInt(this.value):null;refreshAll();"></div>
       </div>
-      <div class="disclaimer">⚠️ 外驱每月、内驱每3月为常见周期，具体用药请遵医嘱</div>
-      <div id="dewormList" style="margin-top:8px;"></div>
-      <div class="lock-tag" id="dewLimit" style="margin-top:6px;display:none;">免费版限外驱1条+内驱1条</div>
-      <div class="know-card" onclick="this.classList.toggle('open')">
-        <div class="know-title">🪱 驱虫小知识</div>
-        <ul><li>幼宠(2~6月)内驱每月1次；成年常规每3月1次，高风险每月1次</li><li>外驱+心丝虫预防每月1次，有蚊季节不可中断，纯室内也需防</li><li>内外同驱滴剂(大宠爱/爱沃克)不驱或弱驱绦虫，需额外口服补</li><li>猫狗驱虫药成分不同，猫严禁使用犬用驱虫药（可能中毒致死）</li><li>驱虫后1~2天轻微呕吐/软便正常，持续或加重请就医</li></ul>
-        <div class="know-disclaimer">⚠️ 以上整理自公开资料，具体用药和频率请咨询兽医</div>
-      </div>
+      <button class="btn btn-primary btn-sm" onclick="addDeworm()">保存驱虫记录</button>
+      <div class="know-card" onclick="this.classList.toggle('open')"><div class="know-title">🪱 驱虫小知识</div><ul><li>幼宠(2~6月)内驱每月1次；成年每3月1次</li><li>外驱+心丝虫预防每月1次，纯室内也需防</li><li>内外同驱滴剂不驱绦虫，需额外口服补</li><li>猫狗驱虫药不通用</li></ul><div class="know-disclaimer">⚠️ 整理自公开资料，具体用药请咨询兽医</div></div>
     </div>
+  </div>
 
-    <!-- Weight -->
-    <div class="card" id="weightCard">
-      <div class="fold-header" onclick="toggleFold('weightBody')">
-        <h2 style="margin:0;">⚖️ 体重追踪</h2>
-        <span class="lock-tag" id="weightLock" style="display:none;">单宠版及以上</span>
-      </div>
-      <div class="fold-body" id="weightBody">
-        <div class="form-row">
-          <div class="form-group"><label>日期</label><input type="date" id="wDate"></div>
-          <div class="form-group"><label>体重(kg)</label><input type="number" id="wWeight" step="0.1" placeholder="如：4.5" style="width:100%;padding:10px 12px;border:1.5px solid #EBE4DA;border-radius:14px;font-size:13px;"></div>
-        </div>
-        <button class="btn btn-primary btn-sm" onclick="addWeight()">+ 记录体重</button>
-        <div id="weightList" style="margin-top:8px;"></div>
-      </div>
+  <!-- Page: Weight -->
+  <div class="page" id="page-weight">
+    <div id="weightLocked" class="card" style="text-align:center;padding:30px;">
+      <div style="font-size:40px;">🔒</div>
+      <div style="font-size:14px;font-weight:800;margin:8px 0;">体重追踪需要解锁</div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:12px;">单宠版 / 完整版可用</div>
+      <button class="btn btn-primary btn-sm" onclick="showPricing()">查看版本</button>
     </div>
-
-    <!-- Vet Visit -->
-    <div class="card" id="visitCard">
-      <div class="fold-header" onclick="toggleFold('visitBody')">
-        <h2 style="margin:0;">🏥 就诊记录</h2>
-        <span class="lock-tag" id="visitLock" style="display:none;">单宠版及以上</span>
-      </div>
-      <div class="fold-body" id="visitBody">
-        <div class="form-row">
-          <div class="form-group"><label>日期</label><input type="date" id="viDate"></div>
-          <div class="form-group"><label>医院</label><input type="text" id="viHospital" placeholder="宠物医院"></div>
-        </div>
-        <div class="form-row">
-          <div class="form-group"><label>原因</label><input type="text" id="viReason" placeholder="如：呕吐、体检"></div>
-        </div>
-        <div class="form-row">
-          <div class="form-group"><label>诊断/方案</label><input type="text" id="viDiagnosis" placeholder="医生诊断"></div>
-          <div class="form-group"><label>费用(¥)</label><input type="number" id="viCost" step="0.01" placeholder="0.00" style="width:100%;padding:10px 12px;border:1.5px solid #EBE4DA;border-radius:14px;font-size:13px;"></div>
-        </div>
-        <div class="form-row">
-          <div class="form-group"><label>病历/报告位置（选填）</label><input type="text" id="viProof" placeholder="如：微信收藏 / 相册 / 纸质"></div>
-        </div>
-        <button class="btn btn-primary btn-sm" onclick="addVisit()">+ 添加就诊记录</button>
-        <div id="visitList" style="margin-top:8px;"></div>
-      </div>
-    </div>
-
-    <!-- Medication -->
-    <div class="card" id="medCard">
-      <div class="fold-header" onclick="toggleFold('medBody')">
-        <h2 style="margin:0;">💊 用药记录</h2>
-        <span class="lock-tag" id="medLock" style="display:none;">单宠版及以上</span>
-      </div>
-      <div class="fold-body" id="medBody">
-        <div class="form-row">
-          <div class="form-group"><label>药品名</label><input type="text" id="mName" placeholder="如：海乐妙"></div>
-          <div class="form-group"><label>用法用量</label><input type="text" id="mDosage" placeholder="如：半片/次"></div>
-        </div>
-        <div class="form-row">
-          <div class="form-group"><label>开始日期</label><input type="date" id="mStart"></div>
-          <div class="form-group"><label>结束日期</label><input type="date" id="mEnd"></div>
-        </div>
-        <button class="btn btn-primary btn-sm" onclick="addMed()">+ 添加用药记录</button>
-        <div id="medList" style="margin-top:8px;"></div>
-      </div>
-    </div>
-
-    <!-- Expense -->
-    <div class="card" id="expenseCard">
-      <div class="fold-header" onclick="toggleFold('expenseBody')">
-        <h2 style="margin:0;">💰 花费统计</h2>
-        <span class="lock-tag" id="expenseLock" style="display:none;">完整版可用</span>
-      </div>
-      <div class="fold-body" id="expenseBody">
-        <div class="form-row">
-          <div class="form-group"><label>日期</label><input type="date" id="eDate"></div>
-          <div class="form-group"><label>类别</label><select id="eCategory"><option>食品</option><option>医疗</option><option>用品</option><option>美容</option><option>其他</option></select></div>
-        </div>
-        <div class="form-row">
-          <div class="form-group"><label>项目</label><input type="text" id="eItem" placeholder="如：猫粮"></div>
-          <div class="form-group"><label>金额(¥)</label><input type="number" id="eAmount" step="0.01" placeholder="0.00" style="width:100%;padding:10px 12px;border:1.5px solid #EBE4DA;border-radius:14px;font-size:13px;"></div>
-        </div>
-        <button class="btn btn-primary btn-sm" onclick="addExpense()">+ 添加花费</button>
-        <div id="expenseSum" style="margin-top:8px;font-size:12px;color:var(--muted);"></div>
-        <div id="expenseList" style="margin-top:4px;"></div>
-      </div>
-    </div>
-
-    <!-- Export -->
-    <div class="card" style="text-align:center;" id="exportCard">
-      <div style="display:flex;gap:8px;">
-        <button class="btn btn-outline btn-sm hidden" id="saveBtn" onclick="saveCard()" style="flex:1;">💾 保存到手机</button>
-        <button class="btn btn-green btn-sm hidden" id="exportBtn" onclick="handleExport()" style="flex:1;">🖨️ 导出 PDF</button>
-      </div>
-      <div class="disclaimer" id="exportHint">填写记录后可保存 / 导出健康卡</div>
-    </div>
-
-    <!-- Advanced Records -->
-    <div class="card">
-      <div class="fold-header" onclick="toggleFold('moreRec')">
-        <span style="font-weight:800;">📋 进阶记录包</span>
-        <span class="lock-tag" id="advLock">解锁后可用</span>
-      </div>
-      <div class="fold-body" id="moreRec">
-        <div style="font-size:12px;color:var(--muted);line-height:2.2;padding:4px 0;">
-          适合长期记录：就诊、用药、复诊、体重、花费、<span class="species-icon" id="morePetIcon">🐱</span> 多宠
-        </div>
-        <button class="btn btn-outline btn-sm" style="margin-top:6px;" onclick="showPricing()">查看完整版</button>
-      </div>
-    </div>
-
-    <!-- Pricing (trigger-based) -->
-    <div id="pricingSection" class="hidden">
+    <div id="weightContent" class="hidden">
+      <div class="card" id="weightSummary"></div>
+      <div class="card" id="weightTrend"></div>
       <div class="card">
-        <h2>想保存健康卡，可以解锁工具版</h2>
-        <div class="price-card">
-          <div><div class="pc-name">🆓 体验版</div><div class="pc-feat">可预览 · 疫苗1条 · 驱虫各1条 · 保存/导出需解锁</div></div>
-          <div class="pc-price">¥0</div>
-        </div>
-        <div class="price-card featured selectable" data-plan="single" id="planSingle" onclick="selectPlan('single')">
-          <div>
-            <div class="pc-name">⭐ 单宠版 <span class="badge">推荐</span></div>
-            <div class="pc-feat">无限记录 · 体重 · 就诊用药 · 导出健康卡</div>
+        <div id="weightTable"></div>
+        <button class="btn btn-primary btn-sm" onclick="showWeightForm()" style="margin-top:6px;">+ 记录体重</button>
+        <div id="weightForm" class="hidden" style="margin-top:8px;">
+          <div class="form-row">
+            <div class="form-group"><label>日期</label><input type="date" id="wDate"></div>
+            <div class="form-group"><label>体重(kg)</label><input type="number" id="wWeight" step="0.1" placeholder="如：4.5"></div>
           </div>
-          <div style="text-align:right;"><div class="pc-price">¥9.9</div><div class="pc-unit">一次性</div></div>
+          <button class="btn btn-primary btn-sm" onclick="addWeight()">保存</button>
         </div>
-        <div class="price-card selectable" data-plan="complete" id="planComplete" onclick="selectPlan('complete')">
-          <div>
-            <div class="pc-name">👑 完整版</div>
-            <div class="pc-feat">单宠版全部 + 多宠 + 花费 + 后续更新</div>
-          </div>
-          <div style="text-align:right;"><div class="pc-price">¥19.9</div><div class="pc-unit">一次性</div></div>
-        </div>
-        <div class="form-row" style="margin-top:8px;">
-          <div class="form-group"><label>访问码</label><input type="text" id="accessCode" placeholder="购买后获取专属码"></div>
-        </div>
-        <button class="btn btn-primary btn-sm" onclick="unlock()">解锁 🔓</button>
       </div>
     </div>
+  </div>
 
-    <div style="text-align:center;padding:6px;" id="pricingTeaser">
-      <span style="font-size:11px;color:var(--muted);cursor:pointer;" id="pricingTeaserText" onclick="showPricing()">查看完整版功能 →</span>
+  <!-- Page: Spending -->
+  <div class="page" id="page-spending">
+    <div id="spendLocked" class="card" style="text-align:center;padding:30px;">
+      <div style="font-size:40px;">🔒</div>
+      <div style="font-size:14px;font-weight:800;margin:8px 0;">花费统计需要完整版</div>
+      <button class="btn btn-primary btn-sm" onclick="showPricing()">查看版本</button>
     </div>
+    <div id="spendContent" class="hidden">
+      <div class="sub-tabs">
+        <div class="sub-tab active" onclick="switchSpendTab('add')">记一笔</div>
+        <div class="sub-tab" onclick="switchSpendTab('month')">月度</div>
+        <div class="sub-tab" onclick="switchSpendTab('year')">年度</div>
+      </div>
+      <!-- Add -->
+      <div class="spend-tab-content" id="spendTabAdd">
+        <div class="card">
+          <div class="form-row">
+            <div class="form-group"><label>日期</label><input type="date" id="eDate"></div>
+            <div class="form-group"><label>类别</label><select id="eCategory"><option>医疗</option><option>食品</option><option>用品</option><option>美容</option><option>其他</option></select></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>项目</label><input type="text" id="eItem" placeholder="如：猫粮"></div>
+            <div class="form-group"><label>金额(¥)</label><input type="number" id="eAmount" step="0.01" placeholder="0.00"></div>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="addExpense()">保存</button>
+        </div>
+      </div>
+      <!-- Month -->
+      <div class="spend-tab-content hidden" id="spendTabMonth">
+        <div class="card" id="spendMonthSummary"></div>
+        <div class="card" id="spendMonthDetail"></div>
+      </div>
+      <!-- Year -->
+      <div class="spend-tab-content hidden" id="spendTabYear">
+        <div class="card" id="spendYearSummary"></div>
+        <div class="card" id="spendYearTrend"></div>
+        <div class="card" id="spendYearDetail"></div>
+      </div>
+    </div>
+  </div>
 
-  </div><!-- /dashboard -->
-</div><!-- /formArea -->
+  <!-- Page: More -->
+  <div class="page" id="page-more">
+    <div class="card" onclick="switchTab('health');quickRecord('visit')"><h3>🏥 就诊记录</h3><div style="font-size:10px;color:var(--muted);">日期 · 医院 · 原因 · 费用</div></div>
+    <div class="card" onclick="switchTab('health');quickRecord('med')"><h3>💊 用药记录</h3><div style="font-size:10px;color:var(--muted);">药品 · 用法 · 起止日期</div></div>
+    <div class="card" onclick="editPet()"><h3>🐱 宠物档案</h3><div style="font-size:10px;color:var(--muted);">名字 · 生日 · 到家日期 · 照片</div></div>
+    <div class="card" onclick="showPricing()"><h3>⭐ 版本与解锁</h3><div id="morePlanBadge" style="font-size:10px;color:var(--muted);">免费体验版</div></div>
+    <div class="card" id="exportCard">
+      <h3>📤 保存与导出</h3>
+      <div id="exportArea" style="margin-top:4px;"></div>
+    </div>
+    <div class="footer-note">🔒 数据只保存在浏览器本地，不上传服务器<br>健康内容仅做记录参考，不替代兽医判断<br>@宠物本本杂货铺</div>
+  </div>
 
-<!-- ═══ Footer ═══ -->
-<div class="footer">
-  🔒 数据只保存在浏览器本地，不上传服务器<br>
-  健康内容仅做记录参考，不替代兽医判断<br><br>
-  @宠物本本杂货铺
 </div>
+
+<!-- Setup Overlay -->
+<div id="setupOverlay" class="hidden" style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.3);z-index:20;display:flex;align-items:center;justify-content:center;">
+  <div class="card" style="width:90%;max-width:360px;max-height:90vh;overflow-y:auto;">
+    <h3>🐱 宠物信息</h3>
+    <div class="form-row"><div class="form-group"><label>名字</label><input type="text" id="petName" placeholder="如：咪咪"></div><div class="form-group"><label>物种</label><select id="petSpecies" onchange="onSpeciesChange()"><option>猫</option><option>狗</option></select></div></div>
+    <div class="form-row"><div class="form-group"><label>出生日期（选填）</label><input type="date" id="petBirth"></div><div class="form-group"><label>到家日期（选填）</label><input type="date" id="petArrival"></div></div>
+    <div style="display:flex;gap:8px;">
+      <button class="btn btn-primary btn-sm" onclick="savePet()" style="flex:1;">保存</button>
+      <button class="btn btn-outline btn-sm" onclick="document.getElementById('setupOverlay').classList.add('hidden')" style="flex:1;">取消</button>
+    </div>
+  </div>
+</div>
+
+<!-- Pricing Overlay -->
+<div id="pricingOverlay" class="hidden" style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.3);z-index:20;display:flex;align-items:center;justify-content:center;">
+  <div class="card" style="width:90%;max-width:360px;max-height:90vh;overflow-y:auto;">
+    <h3>⭐ 版本选择</h3>
+    <div style="padding:10px;border-radius:14px;margin:6px 0;background:#fff;border:1px solid #E8E0D5;" onclick="selectedPlan='single';document.querySelectorAll('#pricingOverlay .plan-opt').forEach(e=>e.style.borderColor='#E8E0D5');event.currentTarget.style.borderColor='var(--accent)';" class="plan-opt">
+      <div style="font-weight:800;">🆓 免费体验版 · ¥0</div><div style="font-size:10px;color:var(--muted);">疫苗1条 · 驱虫各1条 · 可预览</div>
+    </div>
+    <div style="padding:10px;border-radius:14px;margin:6px 0;background:#fff;border:2px solid var(--accent);" onclick="selectedPlan='single';" class="plan-opt">
+      <div style="font-weight:800;">⭐ 单宠版 · ¥9.9 <span style="font-size:10px;color:var(--green);">一次性</span></div><div style="font-size:10px;color:var(--muted);">无限记录 · 体重 · 就诊 · 用药 · 导出</div>
+    </div>
+    <div style="padding:10px;border-radius:14px;margin:6px 0;background:#fff;border:1px solid #E8E0D5;" onclick="selectedPlan='complete';" class="plan-opt">
+      <div style="font-weight:800;">👑 完整版 · ¥19.9 <span style="font-size:10px;color:var(--green);">一次性</span></div><div style="font-size:10px;color:var(--muted);">单宠版全部 + 多宠 + 花费 + 后续更新</div>
+    </div>
+    <div class="form-row"><div class="form-group"><label>专属访问码</label><input type="text" id="accessCode" placeholder="下单后获取"></div></div>
+    <div style="display:flex;gap:8px;">
+      <button class="btn btn-primary btn-sm" onclick="unlock()" style="flex:1;">解锁</button>
+      <button class="btn btn-outline btn-sm" onclick="document.getElementById('pricingOverlay').classList.add('hidden')" style="flex:1;">关闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- Bottom Nav -->
+<nav class="bottom-nav">
+  <div class="nav-item active" data-tab="home" onclick="switchTab('home')"><span class="nav-icon">🏠</span>首页</div>
+  <div class="nav-item" data-tab="health" onclick="switchTab('health')"><span class="nav-icon">❤️</span>健康</div>
+  <div class="nav-item" data-tab="weight" onclick="switchTab('weight')"><span class="nav-icon">⚖️</span>体重</div>
+  <div class="nav-item" data-tab="spending" onclick="switchTab('spending')"><span class="nav-icon">💰</span>花费</div>
+  <div class="nav-item" data-tab="more" onclick="switchTab('more')"><span class="nav-icon">📋</span>更多</div>
+</nav>
 
 <div class="toast" id="toast"></div>
 </div>
@@ -497,670 +372,421 @@ body {
 let pet = JSON.parse(localStorage.getItem('pn_pet') || 'null');
 let vaccines = JSON.parse(localStorage.getItem('pn_vac') || '[]');
 let deworms = JSON.parse(localStorage.getItem('pn_dew') || '[]');
-let planLevel = localStorage.getItem('pn_plan') || 'free'; // 'free'|'single'|'complete'
-let selectedPlan = 'single'; // 当前在付费区选中的方案
+let planLevel = localStorage.getItem('pn_plan') || 'free';
+let selectedPlan = 'single';
 let petPhoto = localStorage.getItem('pn_photo') || null;
 let weights = JSON.parse(localStorage.getItem('pn_weight') || '[]');
 let visits = JSON.parse(localStorage.getItem('pn_visit') || '[]');
 let meds = JSON.parse(localStorage.getItem('pn_med') || '[]');
 let expenses = JSON.parse(localStorage.getItem('pn_expense') || '[]');
+let currentTab = 'home';
+let healthSubTab = 'vac';
+let spendSubTab = 'add';
+let editing = null;
+let customVacInterval = null, customDewOuter = null, customDewInner = null;
 const FREE_VAC = 1, FREE_DEW = 2;
 
-let editing = null;
-function clearEdit() { editing = null; }
-
 // ═══ Helpers ═══
-function calcAge(birth) {
-  if (!birth) return null;
-  const b = new Date(birth), now = new Date();
-  let yrs = now.getFullYear() - b.getFullYear();
-  let mos = now.getMonth() - b.getMonth();
-  if (mos < 0) { yrs--; mos += 12; }
-  if (now.getDate() < b.getDate()) { mos--; if (mos < 0) { yrs--; mos += 12; } }
-  return { yrs, mos };
-}
-function calcDays(date) {
-  if (!date) return null;
-  return Math.ceil((new Date() - new Date(date)) / (1000*3600*24));
-}
-function statusBadge(daysUntil, warnDays) {
-  if (daysUntil < 0) return '<span class="status-badge status-over">已过期</span>';
-  if (daysUntil <= (warnDays || 14)) return '<span class="status-badge status-warn">临近</span>';
-  return '<span class="status-badge status-ok">正常</span>';
-}
-function nextDateStr(lastDate, intervalDays) {
-  const d = new Date(lastDate);
-  d.setDate(d.getDate() + intervalDays);
-  return d.toISOString().split('T')[0];
-}
-function daysUntil(dateStr) {
-  return Math.ceil((new Date(dateStr) - new Date()) / (1000*3600*24));
-}
-// Default intervals in days — user can override
-let customVacInterval = null;  // null = auto based on age
-let customDewOuter = null;     // null = 30 days
-let customDewInner = null;     // null = puppy 30d, adult 90d
-
 function save() {
-  localStorage.setItem('pn_pet', JSON.stringify(pet));
-  localStorage.setItem('pn_vac', JSON.stringify(vaccines));
-  localStorage.setItem('pn_dew', JSON.stringify(deworms));
-  localStorage.setItem('pn_weight', JSON.stringify(weights));
-  localStorage.setItem('pn_visit', JSON.stringify(visits));
-  localStorage.setItem('pn_med', JSON.stringify(meds));
-  localStorage.setItem('pn_expense', JSON.stringify(expenses));
+  ['pn_pet','pn_vac','pn_dew','pn_plan','pn_photo','pn_weight','pn_visit','pn_med','pn_expense'].forEach((k,i) => {
+    localStorage.setItem(k, JSON.stringify([pet,vaccines,deworms,planLevel,petPhoto,weights,visits,meds,expenses][i]));
+  });
   refreshAll();
 }
-function toast(msg) {
-  const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2000);
-}
+function toast(msg) { const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2000); }
+function calcAge(birth) { if(!birth) return null; const b=new Date(birth), now=new Date(); let y=now.getFullYear()-b.getFullYear(), m=now.getMonth()-b.getMonth(); if(m<0){y--;m+=12;} if(now.getDate()<b.getDate()){m--;if(m<0){y--;m+=12;}} return {yrs:y,mos:m}; }
+function calcDays(d){ if(!d) return null; return Math.ceil((new Date()-new Date(d))/(86400000)); }
+function nextDateStr(lastDate, days){ const d=new Date(lastDate); d.setDate(d.getDate()+days); return d.toISOString().split('T')[0]; }
+function daysUntil(ds){ return Math.ceil((new Date(ds)-new Date())/(86400000)); }
+function statusBadge(daysUntil, warnDays){ if(daysUntil<0) return '<span class="badge badge-over">已过期</span>'; if(daysUntil<=(warnDays||14)) return '<span class="badge badge-warn">临近</span>'; return '<span class="badge badge-ok">正常</span>'; }
+function clearEdit(){ editing=null; }
+function fmt(n){ return n.toFixed(2); }
 
-// ═══ Photo Upload ═══
-function uploadPhoto(e) {
-  const file = e.target.files[0];
-  if (!file) return;
-  if (file.size > 2 * 1024 * 1024) return toast('图片请小于2MB');
-  const reader = new FileReader();
-  reader.onload = function(ev) {
-    petPhoto = ev.target.result;
-    localStorage.setItem('pn_photo', petPhoto);
-    const img = document.getElementById('heroImg');
-    img.src = petPhoto;
-    img.style.display = 'block';
-    document.getElementById('heroEmoji').style.display = 'none';
-    toast('📸 照片已上传');
-  };
-  reader.readAsDataURL(file);
+// ═══ Tab Switching ═══
+function switchTab(tab){
+  currentTab=tab;
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+tab).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.querySelector('[data-tab="'+tab+'"]').classList.add('active');
+  if(tab==='home') renderHome();
+  if(tab==='health') renderHealth();
+  if(tab==='weight') renderWeight();
+  if(tab==='spending') renderSpending();
+  if(tab==='more') renderMore();
+  document.getElementById('mainContent').scrollTop=0;
 }
+function switchHealthTab(sub){ healthSubTab=sub; document.querySelectorAll('.health-tab-content').forEach(e=>e.classList.add('hidden')); document.getElementById('healthTab'+(sub==='vac'?'Vac':sub==='outer'?'Outer':'Inner')).classList.remove('hidden'); document.querySelectorAll('#page-health .sub-tab').forEach((e,i,a)=>{ const m={vac:0,outer:1,inner:1}; e.classList.toggle('active', (sub==='vac'?0:sub==='outer'?1:2)===i); }); renderHealth(); }
+function switchSpendTab(sub){ spendSubTab=sub; document.querySelectorAll('.spend-tab-content').forEach(e=>e.classList.add('hidden')); document.getElementById('spendTab'+(sub==='add'?'Add':sub==='month'?'Month':'Year')).classList.remove('hidden'); document.querySelectorAll('#page-spending .sub-tab').forEach((e,i)=>{ e.classList.toggle('active', (sub==='add'?0:sub==='month'?1:2)===i); }); renderSpending(); }
 
-// ═══ UI ═══
-function startFill() {
-  document.getElementById('formArea').classList.remove('hidden');
-  document.getElementById('setupCard').scrollIntoView({ behavior:'smooth' });
-}
-
-function loadDemo() {
-  pet = { name:'咪咪', species:'猫', birth:'2025-01-15', arrival:'2025-03-01' };
-  vaccines = [{ type:'猫三联', date:'2025-08-15', hospital:'爱诺宠物医院', proof:'疫苗本已拍照存在相册' }];
-  deworms = [{ type:'外驱（每月）', date:'2026-05-01' }, { type:'内驱（每3月）', date:'2026-03-01' }];
-  weights = [{ date:'2026-05-01', weight:4.2 }, { date:'2026-04-01', weight:4.0 }, { date:'2026-03-01', weight:3.8 }];
-  visits = [{ date:'2026-04-15', hospital:'爱诺宠物医院', reason:'年度体检', diagnosis:'健康', cost:380, proof:'微信收藏' }];
-  meds = [{ name:'海乐妙', dosage:'半片/次', start:'2026-03-01', end:'2026-03-03' }];
-  expenses = [{ date:'2026-05-01', category:'食品', item:'猫粮', amount:189 }, { date:'2026-04-20', category:'用品', item:'猫砂', amount:45 }];
-  save();
-  document.getElementById('formArea').classList.remove('hidden');
-  document.getElementById('setupCard').style.display = 'none';
-  document.getElementById('heroBtns').classList.add('hidden');
-  toast('📋 已加载示例数据');
-}
+// ═══ Photo ═══
+function uploadPhoto(e){ const f=e.target.files[0]; if(!f) return; if(f.size>2*1024*1024) return toast('图片请小于2MB'); const r=new FileReader(); r.onload=function(ev){ petPhoto=ev.target.result; localStorage.setItem('pn_photo',petPhoto); refreshAll(); toast('📸 已上传'); }; r.readAsDataURL(f); }
 
 // ═══ Pet ═══
-function savePet() {
-  const n = document.getElementById('petName').value.trim();
-  if (!n) return toast('请填写宠物名字');
-  const wasEdit = !!pet;
-  pet = {
-    name:n, species:document.getElementById('petSpecies').value,
-    birth: document.getElementById('petBirth').value || null,
-    arrival: document.getElementById('petArrival').value || null
-  };
-  save();
-  document.getElementById('setupCard').style.display = 'none';
-  document.getElementById('heroBtns').classList.add('hidden');
-  toast(wasEdit ? '✅ 档案已更新' : '✅ 已保存！');
+function showSetup(){
+  if(pet){ document.getElementById('petName').value=pet.name; document.getElementById('petSpecies').value=pet.species; if(pet.birth) document.getElementById('petBirth').value=pet.birth; if(pet.arrival) document.getElementById('petArrival').value=pet.arrival; }
+  document.getElementById('setupOverlay').classList.remove('hidden');
 }
-function editPet() {
-  if (!pet) return;
-  document.getElementById('petName').value = pet.name;
-  document.getElementById('petSpecies').value = pet.species;
-  if (pet.birth) document.getElementById('petBirth').value = pet.birth;
-  if (pet.arrival) document.getElementById('petArrival').value = pet.arrival;
-  document.getElementById('setupCard').style.display = '';
-  document.getElementById('setupCard').scrollIntoView({ behavior: 'smooth' });
-  toast('📝 修改后点保存');
-}
-
-function onSpeciesChange() {
-  const species = document.getElementById('petSpecies').value;
-  // Hero image
-  if (!petPhoto) {
-    const img = document.getElementById('heroImg');
-    const emoji = document.getElementById('heroEmoji');
-    if (species === '狗') {
-      img.style.display = 'none';
-      emoji.style.display = 'flex';
-      emoji.textContent = '🐶';
-    } else {
-      img.src = 'cat-cover.png';
-      img.style.display = 'block';
-      emoji.style.display = 'none';
-    }
-  }
-  updateVaccineTypes(species);
-  updatePetIcons(species);
-}
-
-function updateVaccineTypes(species) {
-  const sel = document.getElementById('vType');
-  const opts = species === '狗' ? ['犬联苗', '狂犬', '其他'] : ['猫三联', '狂犬', '其他'];
-  sel.innerHTML = opts.map(o => '<option>' + o + '</option>').join('');
-}
-
-function updatePetIcons(species) {
-  const isCat = species !== '狗';
-  const el = function(id) { return document.getElementById(id); };
-  if (isCat) {
-    el('hcPetIcon').innerHTML = '<img src="cat-cover.png" class="pet-icon-inline">';
-    el('setupPetIcon').innerHTML = '<img src="cat-cover.png" class="pet-icon-inline">';
-    el('morePetIcon').innerHTML = '<img src="cat-cover.png" class="pet-icon-inline">';
-  } else {
-    el('hcPetIcon').textContent = '🐶';
-    el('setupPetIcon').textContent = '🐶';
-    el('morePetIcon').textContent = '🐶';
-  }
+function editPet(){ showSetup(); }
+function savePet(){
+  const n=document.getElementById('petName').value.trim(); if(!n) return toast('请填写名字');
+  const wasEdit=!!pet;
+  pet={name:n,species:document.getElementById('petSpecies').value,birth:document.getElementById('petBirth').value||null,arrival:document.getElementById('petArrival').value||null};
+  save(); document.getElementById('setupOverlay').classList.add('hidden');
+  if(!wasEdit){ document.getElementById('homeEmpty').classList.add('hidden'); document.getElementById('homeContent').classList.remove('hidden'); }
+  toast(wasEdit?'✅ 已更新':'✅ 已保存');
 }
 
 // ═══ Vaccine ═══
-function addVaccine() {
-  if (!pet) return toast('请先填写宠物信息');
-  const v = { type:document.getElementById('vType').value, date:document.getElementById('vDate').value, hospital:document.getElementById('vHospital').value, proof:document.getElementById('vProof').value };
-  if (!v.date) return toast('请选择接种日期');
-  const wasEdit = editing && editing.section === 'vac';
-  if (wasEdit) {
-    vaccines[editing.index] = v;
-    clearEdit();
-  } else {
-    if (planLevel === 'free' && vaccines.length >= FREE_VAC) return showPricing();
-    vaccines.push(v);
-  }
-  vaccines.sort((a,b) => new Date(b.date) - new Date(a.date));
-  save();
-  document.getElementById('vDate').value = ''; document.getElementById('vProof').value = ''; document.getElementById('vHospital').value = '';
-  toast(wasEdit ? '💉 已修改' : '💉 已添加');
+function showVacForm(){ document.getElementById('vacForm').classList.toggle('hidden'); clearEdit(); }
+function addVaccine(){
+  if(!pet) return toast('请先建档');
+  const v={type:document.getElementById('vType').value,date:document.getElementById('vDate').value,hospital:document.getElementById('vHospital').value,proof:document.getElementById('vProof').value};
+  if(!v.date) return toast('请选择日期');
+  const wasEdit=editing&&editing.section==='vac';
+  if(wasEdit){ vaccines[editing.index]=v; clearEdit(); }
+  else { if(planLevel==='free'&&vaccines.length>=FREE_VAC) return showPricing(); vaccines.push(v); }
+  vaccines.sort((a,b)=>new Date(b.date)-new Date(a.date)); save();
+  document.getElementById('vDate').value=''; document.getElementById('vProof').value=''; document.getElementById('vHospital').value='';
+  document.getElementById('vacForm').classList.add('hidden');
+  toast(wasEdit?'💉 已修改':'💉 已添加');
 }
-function editVac(i) {
-  const v = vaccines[i];
-  document.getElementById('vType').value = v.type;
-  document.getElementById('vDate').value = v.date;
-  document.getElementById('vHospital').value = v.hospital || '';
-  document.getElementById('vProof').value = v.proof || '';
-  editing = { section: 'vac', index: i };
-  document.getElementById('vaccineCard').scrollIntoView({ behavior: 'smooth' });
-  toast('📝 修改后点「+ 添加疫苗记录」保存');
-}
-function delVac(i) { vaccines.splice(i, 1); clearEdit(); save(); }
+function editVac(i){ const v=vaccines[i]; document.getElementById('vType').value=v.type; document.getElementById('vDate').value=v.date; document.getElementById('vHospital').value=v.hospital||''; document.getElementById('vProof').value=v.proof||''; document.getElementById('vacForm').classList.remove('hidden'); editing={section:'vac',index:i}; toast('📝 修改后点保存'); }
+function delVac(i){ vaccines.splice(i,1); clearEdit(); save(); }
 
 // ═══ Deworm ═══
-function addDeworm() {
-  if (!pet) return toast('请先填写宠物信息');
-  const dw = { type:document.getElementById('dwType').value, date:document.getElementById('dwDate').value };
-  if (!dw.date) return toast('请选择日期');
-  const wasEdit = editing && editing.section === 'dew';
-  if (wasEdit) {
-    deworms[editing.index] = dw;
-    clearEdit();
-  } else {
-    if (planLevel === 'free' && deworms.length >= FREE_DEW) return showPricing();
-    deworms.push(dw);
-  }
-  deworms.sort((a,b) => new Date(b.date) - new Date(a.date));
-  save();
-  document.getElementById('dwDate').value = '';
-  toast(wasEdit ? '🪱 已修改' : '🪱 已添加');
+function showDewForm(type){ document.getElementById('dwType').value=type; document.getElementById('dewForm').classList.toggle('hidden'); clearEdit(); }
+function addDeworm(){
+  if(!pet) return toast('请先建档');
+  const dw={type:document.getElementById('dwType').value,date:document.getElementById('dwDate').value};
+  if(!dw.date) return toast('请选择日期');
+  const wasEdit=editing&&editing.section==='dew';
+  if(wasEdit){ deworms[editing.index]=dw; clearEdit(); }
+  else { if(planLevel==='free'&&deworms.length>=FREE_DEW) return showPricing(); deworms.push(dw); }
+  deworms.sort((a,b)=>new Date(b.date)-new Date(a.date)); save();
+  document.getElementById('dwDate').value=''; document.getElementById('dewForm').classList.add('hidden');
+  toast(wasEdit?'🪱 已修改':'🪱 已添加');
 }
-function editDew(i) {
-  const dw = deworms[i];
-  document.getElementById('dwType').value = dw.type;
-  document.getElementById('dwDate').value = dw.date;
-  editing = { section: 'dew', index: i };
-  document.getElementById('dewCard').scrollIntoView({ behavior: 'smooth' });
-  toast('📝 修改后点「+ 添加驱虫记录」保存');
-}
-function delDew(i) { deworms.splice(i, 1); clearEdit(); save(); }
+function editDew(i){ const dw=deworms[i]; document.getElementById('dwType').value=dw.type; document.getElementById('dwDate').value=dw.date; document.getElementById('dewForm').classList.remove('hidden'); editing={section:'dew',index:i}; toast('📝 修改后点保存'); }
+function delDew(i){ deworms.splice(i,1); clearEdit(); save(); }
 
 // ═══ Weight ═══
-function addWeight() {
-  if (!pet) return toast('请先填写宠物信息');
-  if (planLevel === 'free') return showPricing();
-  const w = parseFloat(document.getElementById('wWeight').value);
-  if (!w || w <= 0) return toast('请输入有效体重');
-  const d = document.getElementById('wDate').value;
-  if (!d) return toast('请选择日期');
-  const wasEdit = editing && editing.section === 'wt';
-  if (wasEdit) {
-    weights[editing.index] = { date: d, weight: w };
-    clearEdit();
-  } else {
-    weights.push({ date: d, weight: w });
-  }
-  weights.sort((a, b) => new Date(b.date) - new Date(a.date));
-  save();
-  document.getElementById('wDate').value = ''; document.getElementById('wWeight').value = '';
-  toast(wasEdit ? '⚖️ 已修改' : '⚖️ 已记录');
+function showWeightForm(){ document.getElementById('weightForm').classList.toggle('hidden'); clearEdit(); }
+function addWeight(){
+  if(!pet) return toast('请先建档');
+  if(planLevel==='free') return showPricing();
+  const w=parseFloat(document.getElementById('wWeight').value); if(!w||w<=0) return toast('请输入有效体重');
+  const d=document.getElementById('wDate').value; if(!d) return toast('请选择日期');
+  const wasEdit=editing&&editing.section==='wt';
+  if(wasEdit){ weights[editing.index]={date:d,weight:w}; clearEdit(); }
+  else weights.push({date:d,weight:w});
+  weights.sort((a,b)=>new Date(b.date)-new Date(a.date)); save();
+  document.getElementById('wDate').value=''; document.getElementById('wWeight').value='';
+  document.getElementById('weightForm').classList.add('hidden');
+  toast(wasEdit?'⚖️ 已修改':'⚖️ 已记录');
 }
-function editWeight(i) {
-  const w = weights[i];
-  document.getElementById('wDate').value = w.date;
-  document.getElementById('wWeight').value = w.weight;
-  editing = { section: 'wt', index: i };
-  document.getElementById('weightCard').scrollIntoView({ behavior: 'smooth' });
-  toast('📝 修改后点「+ 记录体重」保存');
-}
-function delWeight(i) { weights.splice(i, 1); clearEdit(); save(); }
-
-// ═══ Visit ═══
-function addVisit() {
-  if (!pet) return toast('请先填写宠物信息');
-  if (planLevel === 'free') return showPricing();
-  const v = {
-    date: document.getElementById('viDate').value,
-    hospital: document.getElementById('viHospital').value,
-    reason: document.getElementById('viReason').value,
-    diagnosis: document.getElementById('viDiagnosis').value,
-    cost: parseFloat(document.getElementById('viCost').value) || 0,
-    proof: document.getElementById('viProof').value
-  };
-  if (!v.date) return toast('请选择日期');
-  const wasEdit = editing && editing.section === 'visit';
-  if (wasEdit) {
-    visits[editing.index] = v;
-    clearEdit();
-  } else {
-    visits.push(v);
-  }
-  visits.sort((a, b) => new Date(b.date) - new Date(a.date));
-  save();
-  document.getElementById('viDate').value = ''; document.getElementById('viHospital').value = '';
-  document.getElementById('viReason').value = ''; document.getElementById('viDiagnosis').value = '';
-  document.getElementById('viCost').value = ''; document.getElementById('viProof').value = '';
-  toast(wasEdit ? '🏥 已修改' : '🏥 已记录');
-}
-function editVisit(i) {
-  const v = visits[i];
-  document.getElementById('viDate').value = v.date;
-  document.getElementById('viHospital').value = v.hospital || '';
-  document.getElementById('viReason').value = v.reason || '';
-  document.getElementById('viDiagnosis').value = v.diagnosis || '';
-  document.getElementById('viCost').value = v.cost || '';
-  document.getElementById('viProof').value = v.proof || '';
-  editing = { section: 'visit', index: i };
-  document.getElementById('visitCard').scrollIntoView({ behavior: 'smooth' });
-  toast('📝 修改后点「+ 添加就诊记录」保存');
-}
-function delVisit(i) { visits.splice(i, 1); clearEdit(); save(); }
-
-// ═══ Medication ═══
-function addMed() {
-  if (!pet) return toast('请先填写宠物信息');
-  if (planLevel === 'free') return showPricing();
-  const m = {
-    name: document.getElementById('mName').value,
-    dosage: document.getElementById('mDosage').value,
-    start: document.getElementById('mStart').value,
-    end: document.getElementById('mEnd').value
-  };
-  if (!m.name) return toast('请填写药品名');
-  const wasEdit = editing && editing.section === 'med';
-  if (wasEdit) {
-    meds[editing.index] = m;
-    clearEdit();
-  } else {
-    meds.push(m);
-  }
-  meds.sort((a, b) => new Date(b.start || 0) - new Date(a.start || 0));
-  save();
-  document.getElementById('mName').value = ''; document.getElementById('mDosage').value = '';
-  document.getElementById('mStart').value = ''; document.getElementById('mEnd').value = '';
-  toast(wasEdit ? '💊 已修改' : '💊 已记录');
-}
-function editMed(i) {
-  const m = meds[i];
-  document.getElementById('mName').value = m.name;
-  document.getElementById('mDosage').value = m.dosage || '';
-  document.getElementById('mStart').value = m.start || '';
-  document.getElementById('mEnd').value = m.end || '';
-  editing = { section: 'med', index: i };
-  document.getElementById('medCard').scrollIntoView({ behavior: 'smooth' });
-  toast('📝 修改后点「+ 添加用药记录」保存');
-}
-function delMed(i) { meds.splice(i, 1); clearEdit(); save(); }
+function editWeight(i){ const w=weights[i]; document.getElementById('wDate').value=w.date; document.getElementById('wWeight').value=w.weight; document.getElementById('weightForm').classList.remove('hidden'); editing={section:'wt',index:i}; toast('📝 修改后点保存'); }
+function delWeight(i){ weights.splice(i,1); clearEdit(); save(); }
 
 // ═══ Expense ═══
-function addExpense() {
-  if (!pet) return toast('请先填写宠物信息');
-  if (planLevel !== 'complete') return showPricing();
-  const amt = parseFloat(document.getElementById('eAmount').value);
-  if (!amt || amt <= 0) return toast('请输入有效金额');
-  const e = {
-    date: document.getElementById('eDate').value,
-    category: document.getElementById('eCategory').value,
-    item: document.getElementById('eItem').value,
-    amount: amt
-  };
-  if (!e.date) return toast('请选择日期');
-  const wasEdit = editing && editing.section === 'exp';
-  if (wasEdit) {
-    expenses[editing.index] = e;
-    clearEdit();
+function addExpense(){
+  if(!pet) return toast('请先建档');
+  if(planLevel!=='complete') return showPricing();
+  const amt=parseFloat(document.getElementById('eAmount').value); if(!amt||amt<=0) return toast('请输入有效金额');
+  const e={date:document.getElementById('eDate').value,category:document.getElementById('eCategory').value,item:document.getElementById('eItem').value,amount:amt};
+  if(!e.date) return toast('请选择日期');
+  const wasEdit=editing&&editing.section==='exp';
+  if(wasEdit){ expenses[editing.index]=e; clearEdit(); }
+  else expenses.push(e);
+  expenses.sort((a,b)=>new Date(b.date)-new Date(a.date)); save();
+  document.getElementById('eDate').value=''; document.getElementById('eItem').value=''; document.getElementById('eAmount').value='';
+  toast(wasEdit?'💰 已修改':'💰 已记录');
+}
+function editExpense(i){ const e=expenses[i]; document.getElementById('eDate').value=e.date; document.getElementById('eCategory').value=e.category; document.getElementById('eItem').value=e.item||''; document.getElementById('eAmount').value=e.amount; switchSpendTab('add'); switchTab('spending'); editing={section:'exp',index:i}; toast('📝 修改后点保存'); }
+function delExpense(i){ expenses.splice(i,1); clearEdit(); save(); }
+
+// ═══ Visits / Meds ═══
+function addVisit(){
+  if(!pet) return toast('请先建档');
+  if(planLevel==='free') return showPricing();
+  const v={date:document.getElementById('viDate')?document.getElementById('viDate').value:'',hospital:document.getElementById('viHospital')?document.getElementById('viHospital').value:'',reason:document.getElementById('viReason')?document.getElementById('viReason').value:'',diagnosis:document.getElementById('viDiagnosis')?document.getElementById('viDiagnosis').value:'',cost:parseFloat(document.getElementById('viCost')?document.getElementById('viCost').value:0)||0,proof:document.getElementById('viProof')?document.getElementById('viProof').value:''};
+  if(!v.date) return toast('请选择日期');
+  const wasEdit=editing&&editing.section==='visit';
+  if(wasEdit){ visits[editing.index]=v; clearEdit(); }
+  else visits.push(v);
+  visits.sort((a,b)=>new Date(b.date)-new Date(a.date)); save();
+  toast(wasEdit?'🏥 已修改':'🏥 已记录');
+}
+function editVisit(i){ toast('就诊编辑暂在开发中'); }
+function delVisit(i){ visits.splice(i,1); clearEdit(); save(); }
+function addMed(){
+  if(!pet) return toast('请先建档');
+  if(planLevel==='free') return showPricing();
+  const m={name:document.getElementById('mName')?document.getElementById('mName').value:'',dosage:document.getElementById('mDosage')?document.getElementById('mDosage').value:'',start:document.getElementById('mStart')?document.getElementById('mStart').value:'',end:document.getElementById('mEnd')?document.getElementById('mEnd').value:''};
+  if(!m.name) return toast('请填写药品名');
+  meds.push(m); meds.sort((a,b)=>new Date(b.start||0)-new Date(a.start||0)); save();
+  toast('💊 已记录');
+}
+function delMed(i){ meds.splice(i,1); clearEdit(); save(); }
+
+// ═══ Quick Record ═══
+function quickRecord(type){
+  if(!pet) return showSetup();
+  if(type==='vac'){ switchTab('health'); switchHealthTab('vac'); showVacForm(); }
+  else if(type==='dew'){ switchTab('health'); showDewForm('外驱（每月）'); }
+  else if(type==='wt'){ switchTab('weight'); showWeightForm(); }
+  else if(type==='spend'){ switchTab('spending'); switchSpendTab('add'); }
+  else if(type==='visit'||type==='med'){ switchTab('more'); showQuickForm(type); }
+}
+
+// ═══ Quick Form for Visit/Med ═══
+function showQuickForm(type){
+  const overlay=document.createElement('div');
+  overlay.style.cssText='position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.3);z-index:25;display:flex;align-items:center;justify-content:center;';
+  let html='';
+  if(type==='visit'){
+    html='<div class="card" style="width:90%;max-width:360px;"><h3>🏥 就诊记录</h3><div class="form-row"><div class="form-group"><label>日期</label><input type="date" id="viDate"></div><div class="form-group"><label>医院</label><input type="text" id="viHospital" placeholder="宠物医院"></div></div><div class="form-row"><div class="form-group"><label>原因</label><input type="text" id="viReason" placeholder="如：体检"></div><div class="form-group"><label>费用(¥)</label><input type="number" id="viCost" step="0.01" placeholder="0.00"></div></div><div class="form-row"><div class="form-group"><label>诊断/方案</label><input type="text" id="viDiagnosis" placeholder="医生诊断"></div></div><div style="display:flex;gap:8px;"><button class="btn btn-primary btn-sm" onclick="addVisit();document.querySelector(\'[style*=\\'z-index:25\\']\').remove();" style="flex:1;">保存</button><button class="btn btn-outline btn-sm" onclick="this.closest(\'[style*=\\'z-index:25\\']\').remove()" style="flex:1;">取消</button></div></div>';
   } else {
-    expenses.push(e);
+    html='<div class="card" style="width:90%;max-width:360px;"><h3>💊 用药记录</h3><div class="form-row"><div class="form-group"><label>药品名</label><input type="text" id="mName" placeholder="如：海乐妙"></div><div class="form-group"><label>用法用量</label><input type="text" id="mDosage" placeholder="如：半片/次"></div></div><div class="form-row"><div class="form-group"><label>开始日期</label><input type="date" id="mStart"></div><div class="form-group"><label>结束日期</label><input type="date" id="mEnd"></div></div><div style="display:flex;gap:8px;"><button class="btn btn-primary btn-sm" onclick="addMed();document.querySelector(\'[style*=\\'z-index:25\\']\').remove();" style="flex:1;">保存</button><button class="btn btn-outline btn-sm" onclick="this.closest(\'[style*=\\'z-index:25\\']\').remove()" style="flex:1;">取消</button></div></div>';
   }
-  expenses.sort((a, b) => new Date(b.date) - new Date(a.date));
-  save();
-  document.getElementById('eDate').value = ''; document.getElementById('eItem').value = '';
-  document.getElementById('eAmount').value = '';
-  toast(wasEdit ? '💰 已修改' : '💰 已记录');
+  overlay.innerHTML=html; document.body.appendChild(overlay);
 }
-function editExpense(i) {
-  const e = expenses[i];
-  document.getElementById('eDate').value = e.date;
-  document.getElementById('eCategory').value = e.category;
-  document.getElementById('eItem').value = e.item || '';
-  document.getElementById('eAmount').value = e.amount;
-  editing = { section: 'exp', index: i };
-  document.getElementById('expenseCard').scrollIntoView({ behavior: 'smooth' });
-  toast('📝 修改后点「+ 添加花费」保存');
+
+// ═══ Pricing ═══
+function showPricing(){ selectedPlan='single'; document.getElementById('pricingOverlay').classList.remove('hidden'); }
+function unlock(){
+  const code=document.getElementById('accessCode').value.trim().toUpperCase();
+  if(!selectedPlan||!code) return toast('请选择方案并输入访问码');
+  function hash(s){ let h1=2166136261,h2=5381; for(let i=0;i<s.length;i++){ h1^=s.charCodeAt(i); h1=Math.imul(h1,16777619); h2=((h2<<5)+h2)+s.charCodeAt(i); } return (h1>>>0).toString(16).padStart(8,'0')+(h2>>>0).toString(16).padStart(8,'0'); }
+  const SINGLE=['071021e0f856a046','b48c30983602c658','b09c871f62e87881','4e2af807adf917d9','18743161ba99e8bf','18f58cadf7bb4385'];
+  const COMPLETE=['429ce966631ccc50','010fd5fc5de5a190','8420a8f4a7c598f0','b1fde12c9243047c','c9cb22fb634c3e7f','710cd64383a00615'];
+  const list=selectedPlan==='complete'?COMPLETE:SINGLE;
+  if(list.includes(hash(code))){ planLevel=selectedPlan; localStorage.setItem('pn_plan',planLevel); document.getElementById('pricingOverlay').classList.add('hidden'); refreshAll(); toast('🎉 已解锁！'); }
+  else toast('❌ 访问码无效');
 }
-function delExpense(i) { expenses.splice(i, 1); clearEdit(); save(); }
 
-// ═══ Render ═══
-function refreshAll() {
-  document.getElementById('dashboard').classList.toggle('hidden', !pet);
-
-  // Hero
-  const g = document.getElementById('heroGreeting');
-  const s = document.getElementById('heroSub');
-  const img = document.getElementById('heroImg');
-  const emoji = document.getElementById('heroEmoji');
-  const stats = document.getElementById('petStats');
-  if (pet) {
-    g.textContent = pet.name + ' 的健康卡';
-    const age = calcAge(pet.birth);
-    const days = calcDays(pet.arrival);
-    let subParts = [pet.species||''];
-    if (age) subParts.push(age.yrs + '岁' + (age.mos > 0 ? age.mos + '个月' : ''));
-    subParts.push('本地保存');
-    s.textContent = subParts.join(' · ');
-    // Stats
-    if (age || days) {
-      stats.style.display = 'flex';
-      document.getElementById('statAge').innerHTML = (pet.species==='狗'?'🐶':'🐱') + ' <span class="num">' + (age ? age.yrs + '岁' + age.mos + '个月' : '—') + '</span>';
-      document.getElementById('statDays').innerHTML = '💛 已陪伴 <span class="num">' + (days ? days : '—') + '</span> 天';
-    } else { stats.style.display = 'none'; }
+// ═══ Render: Top Bar ═══
+function renderTopBar(){
+  const img=document.getElementById('topImg'), emoji=document.getElementById('topEmoji');
+  if(pet){
+    document.getElementById('topName').textContent=pet.name;
+    const age=calcAge(pet.birth), days=calcDays(pet.arrival);
+    let meta=[pet.species]; if(age) meta.push(age.yrs+'岁'+(age.mos>0?age.mos+'个月':''));
+    document.getElementById('topMeta').textContent=meta.join(' · ');
+    const stats=document.getElementById('topStats');
+    if(age||days){ stats.style.display='flex'; stats.innerHTML=(age?'<div class="top-stat">🐱 '+age.yrs+'岁'+age.mos+'个月</div>':'')+(days?'<div class="top-stat">💛 已陪伴'+days+'天</div>':''); }
+    else stats.style.display='none';
     document.getElementById('editPetLink').classList.remove('hidden');
-    document.getElementById('petEmptyHint').classList.add('hidden');
-    if (petPhoto) {
-      img.src = petPhoto; img.style.display = 'block'; emoji.style.display = 'none';
-    } else if (pet.species === '狗') {
-      img.style.display = 'none'; emoji.style.display = 'flex'; emoji.textContent = '🐶';
-    } else {
-      img.src = 'cat-cover.png'; img.style.display = 'block'; emoji.style.display = 'none';
-    }
-    updateVaccineTypes(pet.species);
-    updatePetIcons(pet.species);
+    if(petPhoto){ img.src=petPhoto; img.style.display='block'; emoji.style.display='none'; }
+    else if(pet.species==='狗'){ img.style.display='none'; emoji.style.display='flex'; emoji.textContent='🐶'; }
+    else { img.src='cat-cover.png'; img.style.display='block'; emoji.style.display='none'; }
   }
+}
 
-  // Health card
-  let nextVac = '填写后自动计算', outerD = '填写后自动计算', innerD = '填写后自动计算';
-  let filled = 0;
+// ═══ Render: Home ═══
+function renderHome(){
+  if(!pet) return;
+  document.getElementById('homeEmpty').classList.add('hidden');
+  document.getElementById('homeContent').classList.remove('hidden');
+  const age=calcAge(pet.birth), isPuppy=age&&age.yrs<1;
 
-  if (pet) { filled += 1; }
-  const hcAge = calcAge(pet ? pet.birth : null);
-  const hcPuppy = hcAge && (hcAge.yrs < 1);
-  if (vaccines.length) {
-    filled += 1;
-    const v0 = vaccines[0];
-    const count = vaccines.filter(x => x.type !== '狂犬').length;
-    const intDays = customVacInterval || (v0.type==='狂犬' ? 365 : (hcPuppy && count < 3 ? 21 : 365));
-    const d = nextDateStr(v0.date, intDays);
-    const days = daysUntil(d);
-    nextVac = days < 0 ? '⚠ 已到期' : d + '（'+days+'天后）';
+  // Reminders
+  let reminders=[], hasAny=false;
+  if(vaccines.length){
+    const v0=vaccines[0]; const count=vaccines.filter(x=>x.type!=='狂犬').length;
+    const intDays=customVacInterval||(v0.type==='狂犬'?365:(isPuppy&&count<3?21:365));
+    const next=nextDateStr(v0.date,intDays); const du=daysUntil(next);
+    reminders.push({icon:'💉',label:'下次疫苗',date:next,cls:du<0?'over':du<=30?'warn':'ok',days:du});
+    hasAny=true;
   }
-  if (deworms.length) {
-    filled += 1;
-    deworms.forEach(dw => {
-      const isOuter = dw.type.includes('外');
-      const intDays = isOuter ? (customDewOuter || 30) : (customDewInner || (hcPuppy ? 30 : 90));
-      const d = nextDateStr(dw.date, intDays);
-      const days = daysUntil(d);
-      const txt = days < 0 ? '⚠ 已到期' : d + '（'+days+'天后）';
-      if (isOuter) outerD = txt; else innerD = txt;
-    });
-  }
+  const outerDw=deworms.filter(d=>d.type.includes('外'));
+  const innerDw=deworms.filter(d=>!d.type.includes('外'));
+  if(outerDw.length){ const d=outerDw[0]; const next=nextDateStr(d.date,customDewOuter||30); const du=daysUntil(next); reminders.push({icon:'🟠',label:'下次外驱',date:next,cls:du<0?'over':du<=7?'warn':'ok',days:du}); hasAny=true; }
+  if(innerDw.length){ const d=innerDw[0]; const next=nextDateStr(d.date,customDewInner||(isPuppy?30:90)); const du=daysUntil(next); reminders.push({icon:'🟢',label:'下次内驱',date:next,cls:du<0?'over':du<=21?'warn':'ok',days:du}); hasAny=true; }
+  document.getElementById('reminderEmpty').style.display=hasAny?'none':'';
+  document.getElementById('reminderList').innerHTML=reminders.map(r=>`<div class="remind-item"><div class="remind-dot ${r.cls}"></div><span style="flex:1;">${r.icon} ${r.label}</span><span style="font-size:12px;">${r.date}</span><span class="badge badge-${r.cls}">${r.days<0?'已过期':r.days+'天后'}</span></div>`).join('')||'';
 
-  const pct = Math.round(filled / 3 * 100);
-  document.getElementById('hcItems').textContent = '已填写 ' + filled + '/3 项';
-  document.getElementById('hcBar').style.width = pct + '%';
+  // Recent 3
+  let all=[];
+  vaccines.forEach(v=>all.push({date:v.date,text:'💉 '+v.type+' · '+(v.hospital||''),type:'vac'}));
+  deworms.forEach(d=>all.push({date:d.date,text:'🪱 '+d.type,type:'dew'}));
+  weights.forEach(w=>all.push({date:w.date,text:'⚖️ '+w.weight+'kg',type:'wt'}));
+  expenses.forEach(e=>all.push({date:e.date,text:'💰 '+e.category+' · ¥'+fmt(e.amount),type:'exp'}));
+  visits.forEach(v=>all.push({date:v.date,text:'🏥 '+(v.reason||v.hospital||'就诊'),type:'visit'}));
+  all.sort((a,b)=>new Date(b.date)-new Date(a.date));
+  document.getElementById('recentList').innerHTML=all.slice(0,3).map(a=>`<div class="card-row"><span>${a.date} · ${a.text}</span></div>`).join('')||'<div style="font-size:11px;color:var(--muted);">暂无记录</div>';
 
-  function valCls(v) { return v.includes('⚠') ? 'warn' : v === '填写后自动计算' ? 'muted' : 'green'; }
-  document.getElementById('hcVaccine').textContent = nextVac;
-  document.getElementById('hcVaccine').className = 'hc-value ' + valCls(nextVac);
-  document.getElementById('hcOuter').textContent = outerD;
-  document.getElementById('hcOuter').className = 'hc-value ' + valCls(outerD);
-  document.getElementById('hcInner').textContent = innerD;
-  document.getElementById('hcInner').className = 'hc-value ' + valCls(innerD);
+  // Monthly summary
+  const now=new Date(); const thisMonth=now.getMonth(); const thisYear=now.getFullYear();
+  const monthExp=expenses.filter(e=>{ const d=new Date(e.date); return d.getMonth()===thisMonth&&d.getFullYear()===thisYear; });
+  const monthTotal=monthExp.reduce((s,e)=>s+e.amount,0);
+  const lastW=weights[0];
+  document.getElementById('monthSummary').innerHTML='<h3>📊 本月小结</h3>'+
+    (monthExp.length?`<div class="card-row"><span>💰 本月花费</span><span style="font-weight:700;">¥${fmt(monthTotal)}</span></div>`:'')+
+    (lastW?`<div class="card-row"><span>⚖️ 最近体重</span><span style="font-weight:700;">${lastW.weight}kg (${lastW.date})</span></div>`:'')+
+    (all.length?`<div class="card-row"><span>📝 总记录</span><span>${all.length}条</span></div>`:'')||'<div style="font-size:11px;color:var(--muted);">这个月还没有记录</div>';
+}
+
+// ═══ Render: Health ═══
+function renderHealth(){
+  const age=calcAge(pet?pet.birth:null), isPuppy=age&&age.yrs<1;
+
+  // Summary
+  let sum=[];
+  if(vaccines.length){ const v0=vaccines[0], count=vaccines.filter(x=>x.type!=='狂犬').length; const int=customVacInterval||(v0.type==='狂犬'?365:(isPuppy&&count<3?21:365)); const next=nextDateStr(v0.date,int); const du=daysUntil(next); sum.push('💉 下次疫苗：'+next+' '+statusBadge(du,30)); }
+  const outer=deworms.filter(d=>d.type.includes('外')); if(outer.length){ const next=nextDateStr(outer[0].date,customDewOuter||30); sum.push('🟠 下次外驱：'+next+' '+statusBadge(daysUntil(next),7)); }
+  const inner=deworms.filter(d=>!d.type.includes('外')); if(inner.length){ const next=nextDateStr(inner[0].date,customDewInner||(isPuppy?30:90)); sum.push('🟢 下次内驱：'+next+' '+statusBadge(daysUntil(next),21)); }
+  document.getElementById('healthSummary').innerHTML=sum.length?sum.map(s=>'<div style="font-size:13px;padding:4px 0;">'+s+'</div>').join(''):'<div style="font-size:12px;color:var(--muted);text-align:center;">还没有健康记录</div>';
 
   // Vaccine list
-  const vl = document.getElementById('vaccineList');
-  const age = calcAge(pet ? pet.birth : null);
-  const isPuppy = age && (age.yrs < 1);
-  // Auto interval: puppy core=21d until 3 shots then 365d; rabies=365d; adult=365d
-  const autoVacInt = (v) => {
-    if (v.type === '狂犬') return 365;
-    if (!isPuppy) return 365;
-    const count = vaccines.filter(x => x.type !== '狂犬' && new Date(x.date) <= new Date(v.date)).length;
-    return count >= 3 ? 365 : 21;
+  const vacList=document.getElementById('vacList');
+  const autoVacInt=(v)=>{ if(v.type==='狂犬') return 365; if(!isPuppy) return 365; const count=vaccines.filter(x=>x.type!=='狂犬'&&new Date(x.date)<=new Date(v.date)).length; return count>=3?365:21; };
+  vacList.innerHTML=vaccines.map((v,i)=>{ const int=customVacInterval||autoVacInt(v); const next=nextDateStr(v.date,int); const du=daysUntil(next); const badge=statusBadge(du,30); return `<div class="rec-row"><div><span>${v.date} · ${v.type} · ${v.hospital||'—'} · 间隔${int>=365?'1年':int+'天'}</span></div><span>${next} ${badge}<span class="rec-actions"><span onclick="editVac(${i})">✎</span><span onclick="delVac(${i})">✕</span></span></span></div>`; }).join('')||'<div style="font-size:11px;color:var(--muted);">暂无记录</div>';
+
+  // Outer/Inner lists
+  const renderDewList=(filter,listId)=>{
+    const list=deworms.filter(filter);
+    return list.map((d,i)=>{ const isOuter=d.type.includes('外'); const origIdx=deworms.indexOf(d); const int=isOuter?(customDewOuter||30):(customDewInner||(isPuppy?30:90)); const next=nextDateStr(d.date,int); const du=daysUntil(next); const badge=statusBadge(du,isOuter?7:21); return `<div class="rec-row"><span>${d.date} · ${d.type} · 间隔${int}天</span><span>${next} ${badge}<span class="rec-actions"><span onclick="editDew(${origIdx})">✎</span><span onclick="delDew(${origIdx})">✕</span></span></span></div>`; }).join('')||'<div style="font-size:11px;color:var(--muted);">暂无记录</div>';
   };
-  vl.innerHTML = vaccines.map((v,i) => {
-    const interval = customVacInterval || autoVacInt(v);
-    const nextStr = nextDateStr(v.date, interval);
-    const nextDays = daysUntil(nextStr);
-    const badge = statusBadge(nextDays, 30);
-    const intLabel = interval >= 365 ? '1年' : interval + '天';
-    const proof = v.proof ? '<br><span style="font-size:10px;color:var(--muted);">📎 ' + v.proof + '</span>' : '';
-    const btns = '<span style="cursor:pointer;color:var(--muted);margin-left:6px;" onclick="editVac('+i+')" title="编辑">✎</span> <span style="cursor:pointer;color:var(--muted);" onclick="delVac('+i+')" title="删除">✕</span>';
-    return '<div class="rec-item"><div><span>' + v.date + ' · ' + v.type + ' · ' + (v.hospital||'—') + ' · 间隔' + intLabel + proof + '</span></div><span>' + nextStr + ' ' + badge + btns + '</span></div>';
-  }).join('') || '<div style="font-size:12px;color:var(--muted);">暂无记录</div>';
-  // Interval override
-  const vacIntEl = document.getElementById('vacInterval');
-  if (vacIntEl) vacIntEl.placeholder = isPuppy ? '幼宠默认21天/3针后1年' : '成年默认1年';
-  document.getElementById('vacLimit').style.display = (planLevel === 'free' && vaccines.length >= FREE_VAC) ? '' : 'none';
+  document.getElementById('outerList').innerHTML=renderDewList(d=>d.type.includes('外'),'outerList');
+  document.getElementById('innerList').innerHTML=renderDewList(d=>!d.type.includes('外'),'innerList');
+}
 
-  // Deworm list
-  const dl = document.getElementById('dewormList');
-  dl.innerHTML = deworms.map((dw,i) => {
-    const isOuter = dw.type.includes('外');
-    const defInt = isOuter ? (customDewOuter || 30) : (customDewInner || (isPuppy ? 30 : 90));
-    const nextStr = nextDateStr(dw.date, defInt);
-    const nextDays = daysUntil(nextStr);
-    const badge = statusBadge(nextDays, isOuter ? 7 : 21);
-    const intLabel = defInt + '天';
-    const btns = '<span style="cursor:pointer;color:var(--muted);margin-left:6px;" onclick="editDew('+i+')" title="编辑">✎</span> <span style="cursor:pointer;color:var(--muted);" onclick="delDew('+i+')" title="删除">✕</span>';
-    return `<div class="rec-item"><span>${dw.date} · ${dw.type} · 间隔${intLabel}</span><span>${nextStr} ${badge}${btns}</span></div>`;
-  }).join('') || '<div style="font-size:12px;color:var(--muted);">暂无记录</div>';
-  document.getElementById('dewLimit').style.display = (planLevel === 'free' && deworms.length >= FREE_DEW) ? '' : 'none';
-
-  // Weight list
-  const wLock = document.getElementById('weightLock');
-  const wl = document.getElementById('weightList');
-  if (planLevel === 'free') {
-    wLock.style.display = ''; wl.innerHTML = '';
+// ═══ Render: Weight ═══
+function renderWeight(){
+  if(planLevel==='free'){ document.getElementById('weightLocked').classList.remove('hidden'); document.getElementById('weightContent').classList.add('hidden'); return; }
+  document.getElementById('weightLocked').classList.add('hidden'); document.getElementById('weightContent').classList.remove('hidden');
+  const w=weights;
+  // Summary
+  if(w.length){
+    const last=w[0], prev=w[1];
+    const diff=prev?(last.weight-prev.weight).toFixed(1):null;
+    const diff30=w.filter(x=>daysUntil(x.date)<=30);
+    document.getElementById('weightSummary').innerHTML='<h3>⚖️ 体重摘要</h3>'+
+      `<div style="font-size:32px;font-weight:900;">${last.weight}<span style="font-size:14px;color:var(--muted);">kg</span></div>`+
+      `<div style="font-size:12px;color:var(--muted);">`+(diff?`较上次 ${diff>0?'↑':'↓'}${Math.abs(diff)}kg · `:'')+last.date+' · 共'+w.length+'条</div>';
+    // Trend
+    const trend=w.slice(0,6).reverse();
+    const maxW=Math.max(...trend.map(x=>x.weight));
+    document.getElementById('weightTrend').innerHTML='<h3>近6次趋势</h3><div class="trend-bar-wrap">'+
+      trend.map(x=>`<div class="trend-bar" style="height:${Math.max(4,(x.weight/maxW)*70)}px;"><div class="bar-val">${x.weight}</div><div class="bar-date">${x.date.slice(5)}</div></div>`).join('')+
+      '</div>';
+    // Table
+    document.getElementById('weightTable').innerHTML=w.map((x,i)=>{ const prev=w[i+1]; const diff=prev?(x.weight-prev.weight).toFixed(1):null; return `<div class="rec-row"><span>${x.date} · ${x.weight}kg</span><span>${diff?`<span style="color:${diff>0?'var(--accent)':'var(--green)'};">${diff>0?'↑':'↓'}${Math.abs(diff)}kg</span>`:''}<span class="rec-actions"><span onclick="editWeight(${i})">✎</span><span onclick="delWeight(${i})">✕</span></span></span></div>`; }).join('')||'<div style="font-size:11px;color:var(--muted);">暂无记录</div>';
   } else {
-    wLock.style.display = 'none';
-    if (weights.length) {
-      const last = weights[0];
-      const prev = weights[1];
-      const diff = prev ? (last.weight - prev.weight).toFixed(1) : null;
-      const diffStr = diff ? (diff > 0 ? '↑' + diff : '↓' + Math.abs(diff)) : '';
-      wl.innerHTML = '<div style="font-size:12px;margin-bottom:6px;color:var(--muted);">最新：<b style="color:var(--ink);">' + last.weight + 'kg</b> ' + (diffStr ? '<span style="color:' + (diff > 0 ? 'var(--accent)' : 'var(--green)') + ';">' + diffStr + 'kg</span>' : '') + '（' + last.date + '）</div>'
-        + weights.map((w, i) => '<div class="rec-item"><span>' + w.date + ' · ' + w.weight + 'kg</span><span><span style="cursor:pointer;color:var(--muted);" onclick="editWeight(' + i + ')">✎</span> <span style="cursor:pointer;color:var(--muted);" onclick="delWeight(' + i + ')">✕</span></span></div>').join('');
-    } else {
-      wl.innerHTML = '<div style="font-size:12px;color:var(--muted);">暂无记录，每月称一次追踪变化</div>';
-    }
-  }
-
-  // Visit list
-  const vLock = document.getElementById('visitLock');
-  const vl2 = document.getElementById('visitList');
-  if (planLevel === 'free') {
-    vLock.style.display = ''; vl2.innerHTML = '';
-  } else {
-    vLock.style.display = 'none';
-    vl2.innerHTML = visits.length
-      ? visits.map((v, i) => {
-          const proof = v.proof ? '<br><span style="font-size:10px;color:var(--muted);">📎 ' + v.proof + '</span>' : '';
-          return '<div class="rec-item"><div><span>' + v.date + ' · ' + (v.hospital || '—') + ' · ' + (v.reason || '—') + proof + '</span></div><span><span style="cursor:pointer;color:var(--muted);" onclick="editVisit(' + i + ')">✎</span> <span style="cursor:pointer;color:var(--muted);" onclick="delVisit(' + i + ')">✕</span></span></div>';
-        }).join('')
-      : '<div style="font-size:12px;color:var(--muted);">暂无记录</div>';
-  }
-
-  // Med list
-  const mLock = document.getElementById('medLock');
-  const ml = document.getElementById('medList');
-  if (planLevel === 'free') {
-    mLock.style.display = ''; ml.innerHTML = '';
-  } else {
-    mLock.style.display = 'none';
-    ml.innerHTML = meds.length
-      ? meds.map((m, i) => '<div class="rec-item"><span>' + (m.start || '?') + '~' + (m.end || '?') + ' · ' + m.name + ' · ' + (m.dosage || '') + '</span><span><span style="cursor:pointer;color:var(--muted);" onclick="editMed(' + i + ')">✎</span> <span style="cursor:pointer;color:var(--muted);" onclick="delMed(' + i + ')">✕</span></span></div>').join('')
-      : '<div style="font-size:12px;color:var(--muted);">暂无记录</div>';
-  }
-
-  // Expense list
-  const eLock = document.getElementById('expenseLock');
-  const el = document.getElementById('expenseList');
-  const es = document.getElementById('expenseSum');
-  if (planLevel !== 'complete') {
-    eLock.style.display = ''; el.innerHTML = ''; es.innerHTML = '';
-  } else {
-    eLock.style.display = 'none';
-    const total = expenses.reduce((s, e) => s + e.amount, 0);
-    es.innerHTML = expenses.length ? '<b>累计：¥' + total.toFixed(2) + '</b>（' + expenses.length + '条记录）' : '暂无记录';
-    el.innerHTML = expenses.map((e, i) => '<div class="rec-item"><span>' + e.date + ' · ' + e.category + ' · ' + (e.item || '—') + '</span><span>¥' + e.amount.toFixed(2) + ' <span style="cursor:pointer;color:var(--muted);" onclick="editExpense(' + i + ')">✎</span> <span style="cursor:pointer;color:var(--muted);" onclick="delExpense(' + i + ')">✕</span></span></div>').join('');
-  }
-
-  // Export buttons — only show when there are records
-  const eb = document.getElementById('exportBtn');
-  const sb = document.getElementById('saveBtn');
-  const eh = document.getElementById('exportHint');
-  const hasRecords = pet && (vaccines.length > 0 || deworms.length > 0);
-  const isPaid = planLevel !== 'free';
-  if (!hasRecords) {
-    sb.classList.add('hidden'); eb.classList.add('hidden');
-    eh.textContent = '填写记录后可保存 / 导出健康卡';
-  } else if (isPaid) {
-    sb.classList.remove('hidden'); eb.classList.remove('hidden');
-    sb.className = 'btn btn-outline btn-sm'; sb.style.flex = '1';
-    eb.className = 'btn btn-green btn-sm'; eb.style.flex = '1';
-    eb.onclick = () => window.print();
-    eh.textContent = '保存到手机 / 打印导出（' + (planLevel === 'complete' ? '完整版' : '单宠版') + '）';
-  } else {
-    sb.classList.remove('hidden'); eb.classList.remove('hidden');
-    sb.className = 'btn btn-outline btn-sm'; sb.style.flex = '1';
-    eb.className = 'btn btn-outline btn-sm'; eb.style.flex = '1';
-    sb.onclick = () => showPricing(); eb.onclick = () => showPricing();
-    eh.textContent = '解锁后可保存 / 导出健康卡';
-  }
-
-  // Advanced lock tag
-  const advLock = document.getElementById('advLock');
-  if (planLevel === 'complete') {
-    advLock.textContent = '已解锁'; advLock.style.background = 'var(--green-light)'; advLock.style.color = 'var(--green)';
-  } else if (planLevel === 'single') {
-    advLock.textContent = '部分已解锁'; advLock.style.background = 'var(--green-light)'; advLock.style.color = 'var(--green)';
-  } else {
-    advLock.textContent = '解锁后可用'; advLock.style.background = 'var(--accent-light)'; advLock.style.color = 'var(--accent)';
-  }
-
-  // Pricing teaser
-  const teaser = document.getElementById('pricingTeaser');
-  const teaserText = document.getElementById('pricingTeaserText');
-  if (planLevel !== 'free') {
-    teaserText.textContent = '已解锁' + (planLevel === 'complete' ? '完整版' : '单宠版') + ' · 查看详情 →';
-  } else {
-    teaserText.textContent = '查看完整版功能 →';
+    document.getElementById('weightSummary').innerHTML='<h3>⚖️ 体重</h3><div style="font-size:12px;color:var(--muted);">还没有记录，每月称一次看变化</div>';
+    document.getElementById('weightTrend').innerHTML='';
+    document.getElementById('weightTable').innerHTML='<div style="font-size:11px;color:var(--muted);">暂无记录</div>';
   }
 }
 
-function handleExport() { if (planLevel !== 'free') window.print(); else showPricing(); }
+// ═══ Render: Spending ═══
+function renderSpending(){
+  if(planLevel!=='complete'){ document.getElementById('spendLocked').classList.remove('hidden'); document.getElementById('spendContent').classList.add('hidden'); return; }
+  document.getElementById('spendLocked').classList.add('hidden'); document.getElementById('spendContent').classList.remove('hidden');
 
-function saveCard() {
-  if (planLevel === 'free') return showPricing();
-  const n = pet ? pet.name : '宠物';
-  const now = new Date().toISOString().split('T')[0];
-  let vacRows = vaccines.map(v => '<tr><td>' + v.date + '</td><td>' + v.type + '</td><td>' + (v.hospital || '—') + '</td><td>' + (v.proof || '') + '</td></tr>').join('');
-  let dewRows = deworms.map(d => '<tr><td>' + d.date + '</td><td>' + d.type + '</td></tr>').join('');
-  let wtRows = weights.map(w => '<tr><td>' + w.date + '</td><td>' + w.weight + 'kg</td></tr>').join('');
-  let viRows = visits.map(v => '<tr><td>' + v.date + '</td><td>' + (v.hospital || '') + '</td><td>' + (v.reason || '') + '</td><td>' + (v.proof || '') + '</td></tr>').join('');
-  const html = '<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><title>' + n + ' 健康卡</title><style>body{font-family:"PingFang SC","Microsoft YaHei",sans-serif;max-width:600px;margin:0 auto;padding:20px;color:#3D2C2A}h1{color:#E98B62;text-align:center}h2{color:#E98B62;border-bottom:2px solid #FFF0E7;padding-bottom:4px}table{width:100%;border-collapse:collapse;margin:8px 0}th{background:#FFF0E7;padding:6px;text-align:left;font-size:13px}td{padding:5px 6px;border-bottom:1px solid #F5EDE8;font-size:12px}.footer{text-align:center;color:#9B8E89;font-size:10px;margin-top:20px}</style></head><body><h1>' + n + ' 的健康卡</h1><p style="text-align:center;color:#9B8E89">生成于 ' + now + ' · @宠物本本杂货铺</p>' + (vaccines.length ? '<h2>💉 疫苗记录</h2><table><tr><th>日期</th><th>类型</th><th>医院</th><th>凭证位置</th></tr>' + vacRows + '</table>' : '') + (deworms.length ? '<h2>🪱 驱虫记录</h2><table><tr><th>日期</th><th>类型</th></tr>' + dewRows + '</table>' : '') + (weights.length ? '<h2>⚖️ 体重追踪</h2><table><tr><th>日期</th><th>体重</th></tr>' + wtRows + '</table>' : '') + (visits.length ? '<h2>🏥 就诊记录</h2><table><tr><th>日期</th><th>医院</th><th>原因</th><th>病历位置</th></tr>' + viRows + '</table>' : '') + '<p class="footer">健康内容仅做记录参考，不替代兽医判断<br>@宠物本本杂货铺 · 免费分享</p></body></html>';
-  const blob = new Blob([html], { type: 'text/html' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url; a.download = n + '_健康卡_' + now + '.html';
-  document.body.appendChild(a); a.click(); document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-  toast('💾 已保存到手机');
+  const now=new Date(); const thisMonth=now.getMonth(); const thisYear=now.getFullYear();
+  const monthExp=expenses.filter(e=>{ const d=new Date(e.date); return d.getMonth()===thisMonth&&d.getFullYear()===thisYear; });
+  const monthTotal=monthExp.reduce((s,e)=>s+e.amount,0);
+
+  // Month summary
+  const cats={}; monthExp.forEach(e=>{ cats[e.category]=(cats[e.category]||0)+e.amount; });
+  const catColors={医疗:'#E98B62',食品:'#6F9C80',用品:'#7BA5D0',美容:'#D4A0C0',其他:'#9B8E89'};
+  document.getElementById('spendMonthSummary').innerHTML='<h3>📊 本月统计</h3>'+
+    `<div style="font-size:28px;font-weight:900;">¥${fmt(monthTotal)}</div><div style="font-size:11px;color:var(--muted);">${now.getFullYear()}年${now.getMonth()+1}月 · ${monthExp.length}笔</div>`+
+    (monthTotal>0?'<div class="cat-bar-wrap">'+Object.entries(cats).map(([k,v])=>`<div class="cat-bar-row"><div class="cat-bar-label">${k}</div><div class="cat-bar-track"><div class="cat-bar-fill" style="width:${(v/monthTotal)*100}%;background:${catColors[k]||'var(--muted)'};"></div></div><div class="cat-bar-val">¥${fmt(v)}</div></div>`).join('')+'</div>':'');
+
+  // Month detail
+  document.getElementById('spendMonthDetail').innerHTML='<h3>本月明细</h3>'+
+    monthExp.map((e,i)=>{ const origIdx=expenses.indexOf(e); return `<div class="rec-row"><span>${e.date} · ${e.category} · ${e.item||'—'}</span><span>¥${fmt(e.amount)}<span class="rec-actions"><span onclick="editExpense(${origIdx})">✎</span><span onclick="delExpense(${origIdx})">✕</span></span></span></div>`; }).join('')||'<div style="font-size:11px;color:var(--muted);">暂无记录</div>';
+
+  // Year
+  const yearExp=expenses.filter(e=>new Date(e.date).getFullYear()===thisYear);
+  const yearTotal=yearExp.reduce((s,e)=>s+e.amount,0);
+  const yearCats={}; yearExp.forEach(e=>{ yearCats[e.category]=(yearCats[e.category]||0)+e.amount; });
+  document.getElementById('spendYearSummary').innerHTML='<h3>📊 年度统计</h3>'+
+    `<div style="font-size:28px;font-weight:900;">¥${fmt(yearTotal)}</div><div style="font-size:11px;color:var(--muted);">${thisYear}年 · ${yearExp.length}笔</div>`+
+    (yearTotal>0?'<div class="cat-bar-wrap">'+Object.entries(yearCats).map(([k,v])=>`<div class="cat-bar-row"><div class="cat-bar-label">${k}</div><div class="cat-bar-track"><div class="cat-bar-fill" style="width:${(v/yearTotal)*100}%;background:${catColors[k]||'var(--muted)'};"></div></div><div class="cat-bar-val">¥${fmt(v)}</div></div>`).join('')+'</div>':'');
+
+  // Year trend (monthly bars)
+  const monthNames=['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+  const monthTotals=Array(12).fill(0); yearExp.forEach(e=>{ monthTotals[new Date(e.date).getMonth()]+=e.amount; });
+  const maxM=Math.max(...monthTotals,1);
+  document.getElementById('spendYearTrend').innerHTML='<h3>月度趋势</h3><div class="trend-bar-wrap">'+
+    monthTotals.map((v,i)=>`<div class="trend-bar" style="height:${Math.max(4,(v/maxM)*60)}px;background:${i===thisMonth?'var(--accent)':'var(--muted)'};opacity:${i===thisMonth?1:0.4};"><div class="bar-val">${v>0?'¥'+v:''}</div><div class="bar-date">${monthNames[i]}</div></div>`).join('')+
+    '</div>';
+
+  // Year detail
+  document.getElementById('spendYearDetail').innerHTML='<h3>年度明细</h3>'+
+    yearExp.map((e,i)=>{ const origIdx=expenses.indexOf(e); return `<div class="rec-row"><span>${e.date} · ${e.category} · ${e.item||'—'}</span><span>¥${fmt(e.amount)}<span class="rec-actions"><span onclick="editExpense(${origIdx})">✎</span><span onclick="delExpense(${origIdx})">✕</span></span></span></div>`; }).join('')||'<div style="font-size:11px;color:var(--muted);">暂无记录</div>';
 }
 
-function toggleFold(id) { document.getElementById(id).classList.toggle('open'); }
-function selectPlan(plan) {
-  selectedPlan = plan;
-  document.getElementById('planSingle').classList.toggle('selected', plan === 'single');
-  document.getElementById('planComplete').classList.toggle('selected', plan === 'complete');
-}
-
-function showPricing() {
-  document.getElementById('pricingSection').classList.remove('hidden');
-  document.getElementById('pricingSection').scrollIntoView({ behavior:'smooth' });
-  document.getElementById('pricingTeaser').classList.add('hidden');
-}
-
-// ═══ Code validation ═══
-const SINGLE_HASHES = ['071021e0f856a046','b48c30983602c658','b09c871f62e87881','4e2af807adf917d9','18743161ba99e8bf','18f58cadf7bb4385','9ad0563845724b08','c96cbfc6edf043c0','341e33e32f4313d3','fbdbad6ce2e8ca42','5bd4afa194ee6523','c287b1ae818bf410','e7f41d9e9e68e3a6','678cf6f92898b909','8af866d3650e6d25','4d9fb25de76def17','3c285ab7c70f5f6d','2a08a39d223c9371','c5a13dc7335584fd','def6dad0eab62638'];
-const COMPLETE_HASHES = ['429ce966631ccc50','010fd5fc5de5a190','8420a8f4a7c598f0','b1fde12c9243047c','c9cb22fb634c3e7f','710cd64383a00615','c431d88f01caafcb','0c8905fe6af64262','0dfed0ce51a40206','95b9251c238762ee','211e35a5d761ec87','274a8672b6bf1bf0','f43544ce3ee9df88','3701e788ee20a5dc','d38b88a18314a837','264e1641e66556e9','4adb309ef9191552','662d3f75eb4c381f','68bcdec865cc14dc','d5243c28ecf0307a'];
-
-function codeHash(s) {
-  let h1 = 2166136261, h2 = 5381;
-  for (let i = 0; i < s.length; i++) {
-    h1 ^= s.charCodeAt(i); h1 = Math.imul(h1, 16777619);
-    h2 = ((h2 << 5) + h2) + s.charCodeAt(i);
-  }
-  return (h1 >>> 0).toString(16).padStart(8,'0') + (h2 >>> 0).toString(16).padStart(8,'0');
-}
-
-function unlock() {
-  const code = document.getElementById('accessCode').value.trim().toUpperCase();
-  if (!selectedPlan) return toast('请先点击选择方案');
-  if (!code) return toast('请输入访问码');
-  const list = selectedPlan === 'complete' ? COMPLETE_HASHES : SINGLE_HASHES;
-  if (list.includes(codeHash(code))) {
-    planLevel = selectedPlan;
-    localStorage.setItem('pn_plan', planLevel);
-    document.getElementById('pricingSection').classList.add('hidden');
-    refreshAll();
-    toast('🎉 已解锁' + (planLevel === 'complete' ? '完整版' : '单宠版') + '！');
+// ═══ Render: More ═══
+function renderMore(){
+  document.getElementById('morePlanBadge').textContent=planLevel==='complete'?'👑 完整版':planLevel==='single'?'⭐ 单宠版':'🆓 免费体验版';
+  const eb=document.getElementById('exportArea');
+  const hasRecords=pet&&(vaccines.length||deworms.length||weights.length);
+  if(planLevel!=='free'&&hasRecords){
+    eb.innerHTML='<button class="btn btn-outline btn-sm" onclick="saveCard()">💾 保存健康卡</button> <button class="btn btn-green btn-sm" onclick="window.print()">🖨️ 打印导出</button>';
+  } else if(planLevel==='free'){
+    eb.innerHTML='<div style="font-size:10px;color:var(--muted);">解锁后可保存导出</div>';
   } else {
-    toast('❌ 访问码无效，请检查后重试');
+    eb.innerHTML='<div style="font-size:10px;color:var(--muted);">填写记录后可导出</div>';
   }
+}
+
+// ═══ Save Card ═══
+function saveCard(){
+  if(planLevel==='free') return showPricing();
+  const n=pet?pet.name:'宠物', now=new Date().toISOString().split('T')[0];
+  let h='<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><title>'+n+' 健康卡</title><style>body{font-family:"PingFang SC","Microsoft YaHei",sans-serif;max-width:600px;margin:0 auto;padding:20px;color:#3D2C2A}h2{color:#E98B62;border-bottom:2px solid #FFF0E7;padding-bottom:4px}table{width:100%;border-collapse:collapse}th{background:#FFF0E7;padding:6px;text-align:left}td{padding:5px 6px;border-bottom:1px solid #F5EDE8;font-size:12px}</style></head><body><h1>'+n+' 健康卡</h1><p style="color:#9B8E89">生成于 '+now+' · @宠物本本杂货铺</p>';
+  if(vaccines.length) h+='<h2>💉 疫苗</h2><table><tr><th>日期</th><th>类型</th><th>医院</th></tr>'+vaccines.map(v=>'<tr><td>'+v.date+'</td><td>'+v.type+'</td><td>'+(v.hospital||'')+'</td></tr>').join('')+'</table>';
+  if(deworms.length) h+='<h2>🪱 驱虫</h2><table><tr><th>日期</th><th>类型</th></tr>'+deworms.map(d=>'<tr><td>'+d.date+'</td><td>'+d.type+'</td></tr>').join('')+'</table>';
+  if(weights.length) h+='<h2>⚖️ 体重</h2><table><tr><th>日期</th><th>体重</th></tr>'+weights.map(w=>'<tr><td>'+w.date+'</td><td>'+w.weight+'kg</td></tr>').join('')+'</table>';
+  if(visits.length) h+='<h2>🏥 就诊</h2><table><tr><th>日期</th><th>医院</th><th>原因</th></tr>'+visits.map(v=>'<tr><td>'+v.date+'</td><td>'+(v.hospital||'')+'</td><td>'+(v.reason||'')+'</td></tr>').join('')+'</table>';
+  h+='<p style="text-align:center;color:#9B8E89;font-size:10px;margin-top:20px;">健康内容仅做记录参考，不替代兽医判断<br>@宠物本本杂货铺</p></body></html>';
+  const blob=new Blob([h],{type:'text/html'}); const url=URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download=n+'_健康卡_'+now+'.html'; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url); toast('💾 已保存');
+}
+
+// ═══ Global Refresh ═══
+function refreshAll(){
+  renderTopBar();
+  if(currentTab==='home') renderHome();
+  else if(currentTab==='health') renderHealth();
+  else if(currentTab==='weight') renderWeight();
+  else if(currentTab==='spending') renderSpending();
+  else if(currentTab==='more') renderMore();
+}
+
+// ═══ Demo ═══
+function loadDemo(){
+  pet={name:'咪咪',species:'猫',birth:'2025-01-15',arrival:'2025-03-01'};
+  vaccines=[{type:'猫三联',date:'2025-08-15',hospital:'爱诺宠物医院',proof:'疫苗本已拍照'}];
+  deworms=[{type:'外驱（每月）',date:'2026-05-01'},{type:'内驱（每3月）',date:'2026-03-01'}];
+  weights=[{date:'2026-05-01',weight:4.2},{date:'2026-04-01',weight:4.0},{date:'2026-03-01',weight:3.8},{date:'2026-02-01',weight:3.5},{date:'2026-01-01',weight:3.2},{date:'2025-12-01',weight:2.9}];
+  visits=[{date:'2026-04-15',hospital:'爱诺宠物医院',reason:'年度体检',diagnosis:'健康',cost:380,proof:'微信收藏'}];
+  meds=[{name:'海乐妙',dosage:'半片/次',start:'2026-03-01',end:'2026-03-03'}];
+  expenses=[{date:'2026-05-01',category:'食品',item:'猫粮',amount:189},{date:'2026-04-20',category:'用品',item:'猫砂',amount:45},{date:'2026-04-15',category:'医疗',item:'体检',amount:380},{date:'2026-03-01',category:'食品',item:'猫粮',amount:189}];
+  planLevel='complete'; localStorage.setItem('pn_plan',planLevel);
+  save(); document.getElementById('homeEmpty').classList.add('hidden'); document.getElementById('homeContent').classList.remove('hidden');
+  document.getElementById('setupOverlay').classList.add('hidden');
+  toast('📋 已加载示例数据（完整版）');
+}
+
+// ═══ Species Change ═══
+function onSpeciesChange(){
+  const sp=document.getElementById('petSpecies').value;
+  const vSel=document.getElementById('vType'); vSel.innerHTML=(sp==='狗'?['犬联苗','狂犬','其他']:['猫三联','狂犬','其他']).map(o=>'<option>'+o+'</option>').join('');
 }
 
 // ═══ Init ═══
-if (petPhoto) {
-  const img = document.getElementById('heroImg');
-  img.src = petPhoto; img.style.display = 'block';
-  document.getElementById('heroEmoji').style.display = 'none';
+if(pet){
+  document.getElementById('homeEmpty').classList.add('hidden');
+  document.getElementById('homeContent').classList.remove('hidden');
 }
-if (pet) {
-  document.getElementById('petName').value = pet.name;
-  document.getElementById('petSpecies').value = pet.species;
-  if (pet.birth) document.getElementById('petBirth').value = pet.birth;
-  if (pet.arrival) document.getElementById('petArrival').value = pet.arrival;
-  document.getElementById('formArea').classList.remove('hidden');
-  document.getElementById('setupCard').style.display = 'none';
-  document.getElementById('heroBtns').classList.add('hidden');
-  refreshAll();
-}
+refreshAll();
+if(!pet){ document.getElementById('homeEmpty').classList.remove('hidden'); document.getElementById('homeContent').classList.add('hidden'); }
 </script>
 </body>
 </html>
